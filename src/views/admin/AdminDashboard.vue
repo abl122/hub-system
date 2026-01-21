@@ -1,0 +1,420 @@
+<script setup lang="ts">
+</script>
+
+<template>
+  <div class="admin-dashboard">
+    <h2>Dashboard Administrativo</h2>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <p class="stat-label">Total de Provedores</p>
+          <p class="stat-value">24</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <p class="stat-label">Receita Mensal</p>
+          <p class="stat-value">R$ 12.500</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">📱</div>
+        <div class="stat-info">
+          <p class="stat-label">Mensagens Processadas</p>
+          <p class="stat-value">45.230</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-info">
+          <p class="stat-label">Alertas Ativos</p>
+          <p class="stat-value">3</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-cards">
+      <div class="card">
+        <h3>Atividade Recente</h3>
+        <div class="activity-list">
+          <div class="activity-item">
+            <span class="time">14:30</span>
+            <span class="text">Novo provedor registrado: Company XYZ</span>
+          </div>
+          <div class="activity-item">
+            <span class="time">10:15</span>
+            <span class="text">Plano Premium ativado para TechCorp</span>
+          </div>
+          <div class="activity-item">
+            <span class="time">08:45</span>
+            <span class="text">Backup do banco de dados concluído</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Saúde do Sistema</h3>
+        <div class="health-info">
+          <div class="health-item">
+            <span class="label">API Status</span>
+            <span class="badge badge-success">Online</span>
+          </div>
+          <div class="health-item">
+            <span class="label">Database</span>
+            <span class="badge badge-success">Operacional</span>
+          </div>
+          <div class="health-item">
+            <span class="label">Email Service</span>
+            <span class="badge badge-success">Ativo</span>
+          </div>
+          <div class="health-item">
+            <span class="label">WhatsApp API</span>
+            <span class="badge badge-success">Operacional</span>
+          </div>
+          <div class="health-item">
+            <span class="label">SMS Service</span>
+            <span class="badge badge-success">Ativo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+:root {
+  --primary: #667eea;
+  --primary-dark: #5568d3;
+  --primary-light: #f0f0ff;
+  --secondary: #059669;
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-light: #9ca3af;
+  --bg-light: #f9fafb;
+  --bg-white: #ffffff;
+  --border: #e5e7eb;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard {
+  max-width: 100%;
+}
+
+.admin-dashboard h2 {
+  margin: 0 0 2rem 0;
+  margin-top: 2rem;
+  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-align: left;
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-card:nth-child(2)::before,
+.stat-card:nth-child(2):hover {
+  background: linear-gradient(180deg, var(--secondary) 0%, #047857 100%);
+  border-color: var(--secondary);
+}
+
+.stat-card:nth-child(3)::before,
+.stat-card:nth-child(3):hover {
+  background: linear-gradient(180deg, var(--warning) 0%, #d97706 100%);
+  border-color: var(--warning);
+}
+
+.stat-card:nth-child(4)::before,
+.stat-card:nth-child(4):hover {
+  background: linear-gradient(180deg, var(--danger) 0%, #991b1b 100%);
+  border-color: var(--danger);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  min-width: 50px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* ===== DASHBOARD CARDS ===== */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: var(--bg-white);
+  padding: 1.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.card h3 {
+  margin: 0 0 1.25rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+/* ===== ACTIVITY LIST ===== */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activity-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item:hover {
+  background: var(--primary-light);
+  padding: 0.875rem 0.75rem;
+  border-radius: 6px;
+  margin: 0 -0.75rem;
+  padding-left: 0.75rem;
+}
+
+.activity-item .time {
+  color: var(--primary);
+  font-weight: 700;
+  min-width: 55px;
+  font-size: 0.875rem;
+}
+
+.activity-item .text {
+  color: var(--text-secondary);
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+/* ===== HEALTH INFO ===== */
+.health-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.health-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-light);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.health-item:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.health-item .label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-success::before {
+  content: '✓';
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-warning::before {
+  content: '⚠';
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-danger::before {
+  content: '✕';
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stats-grid {
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-cards {
+    gap: 1.5rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .health-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard h2 {
+    font-size: 1.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    flex-direction: column;
+  }
+
+  .stat-info {
+    width: 100%;
+  }
+}
+</style>
