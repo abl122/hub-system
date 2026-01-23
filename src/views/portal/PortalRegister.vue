@@ -536,6 +536,25 @@ onMounted(() => {
   margin: 0 1rem;
 }
 
+@media (max-width: 768px) {
+  .portal-register {
+    padding: 1.25rem;
+  }
+
+  .register-card {
+    padding: 1.5rem;
+  }
+
+  .steps-indicator {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .step-divider {
+    width: 48px;
+  }
+}
+
 h1 {
   margin: 0 0 0.5rem;
   font-size: 2rem;

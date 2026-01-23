@@ -124,9 +124,7 @@ onMounted(() => {
 
 <style scoped>
 .install-page {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
 }
 
 .page-header {
@@ -253,6 +251,32 @@ onMounted(() => {
   background: transparent;
   padding: 0;
   border: none;
+}
+
+@media (max-width: 768px) {
+  .install-page {
+    padding: 1.25rem;
+  }
+
+  .config-section {
+    padding: 1.25rem;
+  }
+
+  .install-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .command-box {
+    padding-right: 1rem;
+    word-break: break-word;
+  }
+
+  .btn-copy-inline {
+    position: relative;
+    display: inline-flex;
+    margin-top: 0.75rem;
+  }
 }
 
 .btn-copy-inline {

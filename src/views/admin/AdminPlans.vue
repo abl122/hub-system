@@ -23,23 +23,17 @@ const loadTenantAndPlans = async () => {
       return
     }
 
-    // Buscar primeiro tenant (admin gerencia todos)
-    const tenantsResponse = await tenantsService.listTenants(authStore.adminToken, 1, 1)
-    
-    if (tenantsResponse.success && tenantsResponse.tenants.length > 0) {
-      const tenant = tenantsResponse.tenants[0]
-      tenantId.value = tenant._id
-      
-      // Buscar planos deste tenant
-      const response = await plansService.listPlans(authStore.adminToken, tenant._id, false)
+    // Admin busca TODOS os planos de TODOS os tenants
+    const response = await plansService.listAllPlans(authStore.adminToken)
 
-      if (response.success) {
-        plans.value = response.plans.sort((a, b) => a.ordem - b.ordem)
-      } else {
-        error.value = 'Erro ao carregar planos'
+    if (response.success) {
+      plans.value = response.plans.sort((a, b) => a.ordem - b.ordem)
+      // Usar o tenant_id do primeiro plano se existir
+      if (plans.value.length > 0) {
+        tenantId.value = plans.value[0].tenant_id
       }
     } else {
-      error.value = 'Nenhum tenant encontrado'
+      error.value = 'Erro ao carregar planos'
     }
   } catch (err) {
     error.value = 'Erro ao conectar ao servidor'

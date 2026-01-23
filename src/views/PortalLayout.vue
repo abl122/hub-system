@@ -111,14 +111,47 @@ const toggleSidebar = () => {
   z-index: 100;
 }
 
+.logo {
+  margin-left: -102px;
+}
+
 .header-content {
-  max-width: 1920px;
+  max-width: 1439px;
   margin: 0 auto;
-  padding: 1rem 20px;
+  padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-content > :nth-child(1) {
+  display: none;
+}
+
+.header-content > :nth-child(3) {
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .logo {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
 }
 
 .menu-toggle {
@@ -232,6 +265,8 @@ const toggleSidebar = () => {
 .portal-main {
   flex: 1;
   overflow-y: auto;
+  padding: 2rem;
+  background: #f5f5f5;
 }
 
 @media (max-width: 768px) {

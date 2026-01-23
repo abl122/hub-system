@@ -27,45 +27,61 @@ const paymentMethods = ref<PaymentMethod[]>([])
 const showAddCardModal = ref(false)
 const showUpdateCardModal = ref(false)
 
-// Simulação de dados (em produção, viria da API)
+// Carrega dados reais da API
 const loadPayments = async () => {
   loading.value = true
   
   try {
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Dados de exemplo
-    payments.value = [
-      {
-        _id: '1',
-        data: new Date().toISOString(),
-        valor: 49.90,
-        status: 'pago',
-        metodo: 'Cartão de Crédito',
-        descricao: 'Assinatura Mensal - ' + new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
-        fatura_url: '#'
-      },
-      {
-        _id: '2',
-        data: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        valor: 49.90,
-        status: 'pago',
-        metodo: 'Cartão de Crédito',
-        descricao: 'Assinatura Mensal - ' + new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
-        fatura_url: '#'
-      }
-    ]
+    const tenantId = authStore.user?.tenant_id
+    if (!tenantId) {
+      console.warn('Tenant ID não disponível')
+      loading.value = false
+      return
+    }
 
-    paymentMethods.value = [
-      {
-        tipo: 'cartao',
-        numero: '**** **** **** 1234',
-        bandeira: 'Visa',
-        validade: '12/2026',
-        principal: true
+    // Chamar API real de faturas
+    const response = await fetch(`/api/invoices/${tenantId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.token}`,
+        'Content-Type': 'application/json'
       }
-    ]
+    })
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    
+    // Processar faturas pagas
+    if (data.invoices?.paid_invoices?.length > 0) {
+      payments.value = data.invoices.paid_invoices.map((invoice: any, index: number) => ({
+        _id: invoice.id?.toString() || `paid-${index}`,
+        data: invoice.data_emissao || invoice.emissao_data || new Date().toISOString(),
+        valor: parseFloat(invoice.valor || invoice.vlr_total || 0),
+        status: 'pago' as const,
+        metodo: invoice.metodo || 'Fatura',
+        descricao: invoice.descricao || `Fatura #${invoice.id}`,
+        fatura_url: invoice.url || '#'
+      }))
+    }
+
+    // Adicionar faturas pendentes
+    if (data.invoices?.pending_invoices?.length > 0) {
+      const pendingPayments = data.invoices.pending_invoices.map((invoice: any, index: number) => ({
+        _id: invoice.id?.toString() || `pending-${index}`,
+        data: invoice.data_emissao || invoice.emissao_data || new Date().toISOString(),
+        valor: parseFloat(invoice.valor || invoice.vlr_total || 0),
+        status: invoice.vencida ? 'pendente' : 'pendente' as const,
+        metodo: invoice.tipo || 'Fatura',
+        descricao: invoice.descricao || `Fatura #${invoice.id}`,
+        fatura_url: invoice.url || '#'
+      }))
+      payments.value = [...pendingPayments, ...payments.value]
+    }
+
+    console.log('Faturas carregadas:', payments.value)
 
   } catch (err) {
     console.error('Erro ao carregar pagamentos:', err)
@@ -352,9 +368,7 @@ onMounted(() => {
 
 <style scoped>
 .payments-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
 }
 
 .page-header {
@@ -461,6 +475,17 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .payment-methods-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
 }
 
 .payment-method-card {

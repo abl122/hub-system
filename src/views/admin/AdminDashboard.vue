@@ -1,16 +1,120 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { apiFetch } from '@/services/api'
+
+const authStore = useAuthStore()
+const loading = ref(false)
+const error = ref('')
+
+const stats = ref({
+  totalProvedores: 0,
+  receitaMensal: 0,
+  mensagensProcessadas: 0,
+  alertasAtivos: 0
+})
+
+const activities = ref<any[]>([])
+const alerts = ref<any[]>([])
+const health = ref({
+  api: 'online',
+  database: 'operacional',
+  emailService: 'ativo',
+  whatsappAPI: 'operacional',
+  smsGateway: 'ativo'
+})
+
+const loadStats = async () => {
+  try {
+    const response = await apiFetch('/admin/dashboard/stats', { token: authStore.adminToken })
+    if (response.success) {
+      stats.value = response.stats
+    }
+  } catch (err: any) {
+    console.error('Erro ao carregar stats:', err)
+  }
+}
+
+const loadActivities = async () => {
+  try {
+    const response = await apiFetch('/admin/dashboard/activities?limit=10', { token: authStore.adminToken })
+    if (response.success) {
+      activities.value = response.activities
+    }
+  } catch (err: any) {
+    console.error('Erro ao carregar atividades:', err)
+  }
+}
+
+const loadAlerts = async () => {
+  try {
+    const response = await apiFetch('/admin/dashboard/alerts', { token: authStore.adminToken })
+    if (response.success) {
+      alerts.value = response.alerts
+    }
+  } catch (err: any) {
+    console.error('Erro ao carregar alertas:', err)
+  }
+}
+
+const loadHealth = async () => {
+  try {
+    const response = await apiFetch('/admin/dashboard/health', { token: authStore.adminToken })
+    if (response.success) {
+      health.value = response.health
+    }
+  } catch (err: any) {
+    console.error('Erro ao carregar health:', err)
+  }
+}
+
+const loadData = async () => {
+  loading.value = true
+  error.value = ''
+  
+  try {
+    await Promise.all([
+      loadStats(),
+      loadActivities(),
+      loadAlerts(),
+      loadHealth()
+    ])
+  } catch (err: any) {
+    error.value = err.message || 'Erro ao carregar dados'
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value)
+}
+
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat('pt-BR').format(value)
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <template>
   <div class="admin-dashboard">
-    <h2>Dashboard Administrativo</h2>
+    <div class="container">
+      <h2>Dashboard Administrativo</h2>
 
-    <div class="stats-grid">
+      <div v-if="loading" class="loading">Carregando...</div>
+
+      <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">👥</div>
         <div class="stat-info">
           <p class="stat-label">Total de Provedores</p>
-          <p class="stat-value">24</p>
+          <p class="stat-value">{{ stats.totalProvedores }}</p>
         </div>
       </div>
 
@@ -18,7 +122,7 @@
         <div class="stat-icon">💰</div>
         <div class="stat-info">
           <p class="stat-label">Receita Mensal</p>
-          <p class="stat-value">R$ 12.500</p>
+          <p class="stat-value">{{ formatCurrency(stats.receitaMensal) }}</p>
         </div>
       </div>
 
@@ -26,34 +130,46 @@
         <div class="stat-icon">📱</div>
         <div class="stat-info">
           <p class="stat-label">Mensagens Processadas</p>
-          <p class="stat-value">45.230</p>
+          <p class="stat-value">{{ formatNumber(stats.mensagensProcessadas) }}</p>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon">⚠️</div>
-        <div class="stat-info">
-          <p class="stat-label">Alertas Ativos</p>
-          <p class="stat-value">3</p>
-        </div>
       </div>
-    </div>
 
-    <div class="dashboard-cards">
+      <div class="dashboard-cards">
       <div class="card">
         <h3>Atividade Recente</h3>
-        <div class="activity-list">
-          <div class="activity-item">
-            <span class="time">14:30</span>
-            <span class="text">Novo provedor registrado: Company XYZ</span>
+        <div v-if="activities.length === 0" class="empty-state">
+          Nenhuma atividade registrada ainda
+        </div>
+        <div v-else class="activity-list">
+          <div v-for="activity in activities" :key="activity.id" class="activity-item">
+            <span class="time">{{ activity.hora }}</span>
+            <span class="text">
+              {{ activity.titulo }}
+              <span v-if="activity.tenant" class="tenant-name">- {{ activity.tenant }}</span>
+            </span>
           </div>
-          <div class="activity-item">
-            <span class="time">10:15</span>
-            <span class="text">Plano Premium ativado para TechCorp</span>
-          </div>
-          <div class="activity-item">
-            <span class="time">08:45</span>
-            <span class="text">Backup do banco de dados concluído</span>
+        </div>
+      </div>
+
+      <div class="card" v-if="alerts.length > 0">
+        <h3>Alertas do Sistema</h3>
+        <div class="alerts-list">
+          <div 
+            v-for="(alert, index) in alerts" 
+            :key="index" 
+            class="alert-item"
+            :class="`alert-${alert.tipo}`"
+          >
+            <div class="alert-header">
+              <span class="alert-icon">
+                {{ alert.tipo === 'error' ? '🔴' : alert.tipo === 'warning' ? '🟡' : 'ℹ️' }}
+              </span>
+              <span class="alert-title">{{ alert.titulo }}</span>
+              <span class="alert-count">{{ alert.count }}</span>
+            </div>
+            <p class="alert-description">{{ alert.descricao }}</p>
           </div>
         </div>
       </div>
@@ -63,19 +179,39 @@
         <div class="health-info">
           <div class="health-item">
             <span class="label">API Status</span>
-            <span class="badge badge-success">Online</span>
+            <span 
+              class="badge" 
+              :class="health.api === 'online' ? 'badge-success' : 'badge-error'"
+            >
+              {{ health.api === 'online' ? 'Online' : 'Offline' }}
+            </span>
           </div>
           <div class="health-item">
             <span class="label">Database</span>
-            <span class="badge badge-success">Operacional</span>
+            <span 
+              class="badge" 
+              :class="health.database === 'operacional' ? 'badge-success' : 'badge-error'"
+            >
+              {{ health.database === 'operacional' ? 'Operacional' : 'Erro' }}
+            </span>
           </div>
           <div class="health-item">
             <span class="label">Email Service</span>
-            <span class="badge badge-success">Ativo</span>
+            <span 
+              class="badge" 
+              :class="health.emailService === 'ativo' ? 'badge-success' : 'badge-error'"
+            >
+              {{ health.emailService === 'ativo' ? 'Ativo' : 'Inativo' }}
+            </span>
           </div>
           <div class="health-item">
             <span class="label">WhatsApp API</span>
-            <span class="badge badge-success">Operacional</span>
+            <span 
+              class="badge" 
+              :class="health.whatsappAPI === 'operacional' ? 'badge-success' : 'badge-error'"
+            >
+              {{ health.whatsappAPI === 'operacional' ? 'Operacional' : 'Erro' }}
+            </span>
           </div>
           <div class="health-item">
             <span class="label">SMS Service</span>
@@ -84,36 +220,24 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-:root {
-  --primary: #667eea;
-  --primary-dark: #5568d3;
-  --primary-light: #f0f0ff;
-  --secondary: #059669;
-  --danger: #dc2626;
-  --warning: #f59e0b;
-  --success: #10b981;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-light: #9ca3af;
-  --bg-light: #f9fafb;
-  --bg-white: #ffffff;
-  --border: #e5e7eb;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+.admin-dashboard {
+  width: 100%;
+  padding: 2rem 0;
 }
 
-.admin-dashboard {
-  max-width: 100%;
+.container {
+  max-width: 1200px;
+  /* padding: 0 24px; */
 }
 
 .admin-dashboard h2 {
   margin: 0 0 2rem 0;
-  margin-top: 2rem;
+  /* margin-top: 2rem; */
   color: var(--text-primary);
   font-size: 1.875rem;
   font-weight: 700;
@@ -343,13 +467,89 @@
   content: '⚠';
 }
 
-.badge-danger {
+.badge-danger, .badge-error {
   background: #fee2e2;
   color: #991b1b;
 }
 
-.badge-danger::before {
+.badge-danger::before, .badge-error::before {
   content: '✕';
+}
+
+/* Alertas */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.alert-item {
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.alert-error {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+
+.alert-warning {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.alert-info {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+}
+
+.alert-title {
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+}
+
+.alert-count {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.alert-description {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.tenant-name {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.stat-card-warning {
+  border: 2px solid #f59e0b;
+  background: #fffbeb;
 }
 
 /* ===== RESPONSIVE ===== */

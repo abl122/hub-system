@@ -53,8 +53,8 @@ const loadTenants = async () => {
     const response = await tenantsService.listTenants(authStore.adminToken, page.value, limit.value)
 
     if (response.success) {
-      tenants.value = response.tenants
-      total.value = response.total
+      tenants.value = response.data || []
+      total.value = response.pagination?.total || 0
     } else {
       error.value = 'Erro ao carregar provedores'
     }
@@ -250,7 +250,7 @@ onMounted(() => {
 <style scoped>
 
 .admin-subscriptions {
-  max-width: 100%;
+  max-width: 1200px;
 }
 
 .page-header {

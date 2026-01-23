@@ -97,6 +97,16 @@ interface PublicPlansResponse {
  */
 export const plansService = {
   /**
+   * Listar TODOS os planos de TODOS os tenants (Admin)
+   */
+  async listAllPlans(token: string): Promise<ListPlansResponse> {
+    return apiFetch('/admin/plans', {
+      method: 'GET',
+      token
+    })
+  },
+
+  /**
    * Listar planos (autenticado)
    */
   async listPlans(

@@ -9,6 +9,7 @@ const authStore = useAuthStore()
 
 const username = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const loading = ref(false)
 const error = ref('')
 const showRecoveryModal = ref(false)
@@ -241,15 +242,26 @@ const handleKeypress = (e: KeyboardEvent) => {
           />
         </div>
 
-        <div class="form-group">
+        <div class="form-group password-group">
           <label for="password">Senha</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="Digite sua senha"
-            required
-          />
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Digite sua senha"
+              required
+            />
+            <button
+              type="button"
+              class="toggle-password-btn"
+              @click="showPassword = !showPassword"
+              :title="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+            >
+              <span v-if="showPassword" class="icon">👁️</span>
+              <span v-else class="icon">👁️‍🗨️</span>
+            </button>
+          </div>
         </div>
 
         <div v-if="error" class="error-message">
@@ -810,6 +822,53 @@ const handleKeypress = (e: KeyboardEvent) => {
   opacity: 0.5;
   cursor: not-allowed;
   background: #f9fafb;
+}
+
+/* Password Toggle */
+.password-group {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #667eea;
+  transition: color 0.2s ease;
+}
+
+.toggle-password-btn:hover {
+  color: #5568d3;
+}
+
+.toggle-password-btn:active {
+  transform: scale(0.95);
+}
+
+.toggle-password-btn .icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
 }
 </style>
 

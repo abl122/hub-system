@@ -42,6 +42,7 @@ const isModalOpen = ref(false)
 const selectedProvider = ref<Tenant | null>(null)
 
 const filteredTenants = computed(() => {
+  if (!tenants.value) return []
   if (!searchTerm.value) return tenants.value
 
   return tenants.value.filter(t =>
@@ -65,14 +66,14 @@ const loadTenants = async () => {
       authStore.adminToken,
       page.value,
       limit.value,
-      {
-        search: searchTerm.value || undefined
-      }
+      searchTerm.value ? {
+        nome: searchTerm.value
+      } : undefined
     )
 
     if (response.success) {
-      tenants.value = response.tenants
-      total.value = response.total
+      tenants.value = response.data || []
+      total.value = response.pagination?.total || 0
     } else {
       error.value = 'Erro ao carregar provedores'
     }
@@ -225,7 +226,7 @@ onMounted(() => {
 <style scoped>
 
 .admin-provedores {
-  max-width: 100%;
+  max-width: 1200px;
 }
 
 .admin-provedores h2 {
@@ -242,6 +243,8 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 2rem;
   margin-top: 2rem;
+  gap: 1.5rem;
+  max-width: 1200px;
 }
 
 /* ===== ERROR MESSAGE ===== */

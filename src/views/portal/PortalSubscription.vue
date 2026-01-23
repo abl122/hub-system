@@ -206,6 +206,25 @@ onMounted(() => {
         <div v-if="isExpired" class="alert alert-error">
           ❌ Sua assinatura expirou.
         </div>
+
+        <!-- Ações -->
+        <div class="action-buttons">
+          <button 
+            @click="showUpgradeModal = true" 
+            class="btn btn-primary"
+            :disabled="!tenant.assinatura?.ativa"
+          >
+            🔄 Alterar Plano
+          </button>
+          
+          <button 
+            @click="showCancelModal = true" 
+            class="btn btn-danger"
+            :disabled="!tenant.assinatura?.ativa"
+          >
+            ❌ Cancelar Assinatura
+          </button>
+        </div>
       </div>
 
       <!-- Plano Atual -->
@@ -237,28 +256,6 @@ onMounted(() => {
               <span class="value">{{ currentPlan.dias_trial }} dias</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Ações -->
-      <div class="actions-card">
-        <h2>Ações</h2>
-        <div class="action-buttons">
-          <button 
-            @click="showUpgradeModal = true" 
-            class="btn btn-primary"
-            :disabled="!tenant.assinatura?.ativa"
-          >
-            🔄 Alterar Plano
-          </button>
-          
-          <button 
-            @click="showCancelModal = true" 
-            class="btn btn-danger"
-            :disabled="!tenant.assinatura?.ativa"
-          >
-            ❌ Cancelar Assinatura
-          </button>
         </div>
       </div>
     </div>
@@ -331,9 +328,7 @@ onMounted(() => {
 
 <style scoped>
 .subscription-page {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
 }
 
 .page-header {
@@ -503,6 +498,27 @@ onMounted(() => {
 .action-buttons {
   display: flex;
   gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .subscription-page {
+    padding: 1.25rem;
+  }
+
+  .status-header,
+  .plan-header,
+  .action-buttons {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .plan-limits {
+    flex-direction: column;
+    gap: 1rem;
+  }
 }
 
 .btn {

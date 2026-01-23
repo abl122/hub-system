@@ -14,6 +14,10 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
     children: [
       {
+        path: '',
+        redirect: { name: 'portal-login' }
+      },
+      {
         path: 'login',
         name: 'portal-login',
         component: () => import('@/views/portal/PortalLogin.vue'),
@@ -56,6 +60,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/AdminLayout.vue'),
     meta: { requiresAuth: false },
     children: [
+      {
+        path: '',
+        redirect: { name: 'admin-login' }
+      },
       {
         path: 'login',
         name: 'admin-login',

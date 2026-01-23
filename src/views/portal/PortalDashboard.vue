@@ -143,9 +143,7 @@ onMounted(() => {
 
 <style scoped>
 .portal-dashboard {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
 }
 
 .welcome-section {
@@ -208,6 +206,31 @@ onMounted(() => {
   align-items: flex-start;
   margin-bottom: 1.5rem;
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .portal-dashboard {
+    padding: 1.25rem 0;
+  }
+
+  .portal-dashboard > * {
+    padding: 0 16px;
+  }
+
+  .welcome-section {
+    padding: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-body {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
 }
 
 .card-header h2 {

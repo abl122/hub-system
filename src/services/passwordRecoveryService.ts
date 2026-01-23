@@ -31,10 +31,13 @@ export const passwordRecoveryService = {
   /**
    * Obter contatos mascarados do cadastro
    */
-  getContacts(identifier: string) {
-    return request('GET', '/auth/password-recovery/contacts', undefined, {
+  async getContacts(identifier: string) {
+    const response = await request('GET', '/auth/password-recovery/contacts', undefined, {
       identifier,
     })
+    return {
+      data: response.data
+    }
   },
 
   /**

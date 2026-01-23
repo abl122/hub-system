@@ -21,6 +21,7 @@ export interface SmsUpdatePayload {
   user?: string
   password?: string
   token?: string
+  method?: 'GET' | 'POST'
   default_sender?: string
   enabled?: boolean
 }

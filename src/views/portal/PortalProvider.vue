@@ -232,7 +232,7 @@ onMounted(() => {
 
 <style scoped>
 .portal-provider {
-  padding: 2rem;
+  width: 100%;
 }
 
 .page-header {
@@ -241,6 +241,13 @@ onMounted(() => {
   align-items: flex-start;
   margin-bottom: 2rem;
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .page-header h1 {
@@ -331,7 +338,7 @@ onMounted(() => {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 1.5rem;
-  margin-bottom: 2rem;
+  max-width: 1200px;
 }
 
 .section h2 {

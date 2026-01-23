@@ -8,6 +8,7 @@ interface SMSConfig {
   username: string
   password: string
   token: string
+  method: 'GET' | 'POST'
   default_sender: string
   enabled: boolean
 }
@@ -23,6 +24,7 @@ const config = ref<SMSConfig>({
   username: '',
   password: '',
   token: '',
+  method: 'POST',
   default_sender: 'MK-Edge',
   enabled: false
 })
@@ -38,6 +40,7 @@ const loadConfig = async () => {
         username: response.config.username || '',
         password: response.config.password || '',
         token: response.config.token || '',
+        method: response.config.method || 'POST',
         default_sender: response.config.default_sender || 'MK-Edge',
         enabled: !!response.config.enabled
       }
@@ -54,10 +57,26 @@ const handleTest = async () => {
   message.value = { type: '', text: '' }
 
   try {
-    if (!config.value.username || !config.value.password || !config.value.token) {
+    if (!config.value.endpoint) {
       message.value = {
         type: 'error',
-        text: 'Username, Password e Token são obrigatórios'
+        text: 'Endpoint é obrigatório'
+      }
+      return
+    }
+
+    if (!config.value.username) {
+      message.value = {
+        type: 'error',
+        text: 'Username é obrigatório'
+      }
+      return
+    }
+
+    if (!config.value.password && !config.value.token) {
+      message.value = {
+        type: 'error',
+        text: 'Password ou Token é obrigatório'
       }
       return
     }
@@ -97,10 +116,18 @@ const handleSave = async () => {
   message.value = { type: '', text: '' }
 
   try {
-    if (!config.value.username || !config.value.password || !config.value.token) {
+    if (!config.value.username) {
       message.value = {
         type: 'error',
-        text: 'Username, Password e Token são obrigatórios'
+        text: 'Username é obrigatório'
+      }
+      return
+    }
+
+    if (!config.value.password && !config.value.token) {
+      message.value = {
+        type: 'error',
+        text: 'Password ou Token é obrigatório'
       }
       return
     }
@@ -112,6 +139,7 @@ const handleSave = async () => {
       username: config.value.username,
       password: config.value.password,
       token: config.value.token,
+      method: config.value.method,
       default_sender: config.value.default_sender,
       enabled: config.value.enabled
     }, authStore.adminToken)
@@ -187,27 +215,46 @@ onMounted(() => {
         </div>
 
         <div class="form-group">
-          <label for="password">Password *</label>
+          <label for="password">Password / Chave *</label>
           <input 
             id="password"
             v-model="config.password"
             type="text"
-            placeholder="Sua senha no servidor SMS"
+            placeholder="Campo 'p' do servidor SMS (geralmente um hash)"
             class="input-field"
             :disabled="saving || testing"
           />
+          <small>⚠️ Este é o parâmetro 'p' esperado pelo servidor - a senha/chave de autenticação</small>
         </div>
 
         <div class="form-group">
-          <label for="token">Token *</label>
+          <label for="token">Token (Alternativo)</label>
           <input 
             id="token"
             v-model="config.token"
             type="text"
-            placeholder="Token de autenticação"
+            placeholder="Se usar token ao invés de password"
             class="input-field"
             :disabled="saving || testing"
           />
+          <small>Use password OU token, não ambos</small>
+        </div>
+
+        <div class="form-group">
+          <label for="method">Método HTTP *</label>
+          <select 
+            id="method"
+            v-model="config.method"
+            class="input-field"
+            :disabled="saving || testing"
+          >
+            <option value="GET">GET - Parâmetros na URL</option>
+            <option value="POST">POST - Parâmetros no corpo</option>
+          </select>
+          <small>
+            <strong>GET:</strong> http://servidor/sms?p=token&to=numero&msg=texto<br>
+            <strong>POST:</strong> curl -X POST "http://servidor/sms" -d "p=token&to=numero&msg=texto"
+          </small>
         </div>
 
         <div class="form-group">
@@ -252,13 +299,16 @@ onMounted(() => {
   padding-left: 0;
   /* background: #f5f5f5; */
   min-height: 100vh;
+  max-width: 1200px;
+  /* margin-left: 30px; */
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  /* margin-bottom: 2rem; */
+  margin-top: 2rem;
   gap: 2rem;
 }
 
@@ -293,6 +343,7 @@ onMounted(() => {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 1.5rem;
+  max-width: 1200px;
 }
 
 .section h2 {

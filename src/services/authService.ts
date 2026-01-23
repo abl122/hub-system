@@ -97,10 +97,10 @@ export const authService = {
     cnpj: string,
     password: string
   ): Promise<LoginPortalResponse> {
-    // Manter CNPJ como está (com ou sem formatação)
+    const normalizedCnpj = normalizeCNPJ(cnpj)
     return apiFetch('/auth/portal/login', {
       method: 'POST',
-      body: JSON.stringify({ cnpj, password })
+      body: JSON.stringify({ cnpj: normalizedCnpj, password })
     })
   },
 

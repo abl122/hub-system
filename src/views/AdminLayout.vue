@@ -374,9 +374,10 @@ const toggleSidebar = () => {
 
 .main-content {
   flex: 1;
-  /* padding: 2rem; */
+  padding: 0;
   overflow-y: auto;
-  max-width: 100%;
+  width: 100%;
+  margin-left: 30px;
 }
 
 .main-content::-webkit-scrollbar {
