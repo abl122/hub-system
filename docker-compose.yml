@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  hub-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hub-system
+    restart: unless-stopped
+    networks:
+      - internal_network
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  internal_network:
+    external: true
