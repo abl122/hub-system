@@ -20,6 +20,9 @@ RUN npm ci
 # Copiar código
 COPY . .
 
+# Debug: Mostrar variáveis de ambiente
+RUN echo "🔧 VITE_API_URL=$VITE_API_URL" && echo "🔧 VITE_PUBLIC_URL=$VITE_PUBLIC_URL"
+
 # Build da aplicação
 RUN npm run build
 

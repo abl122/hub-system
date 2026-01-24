@@ -2,7 +2,7 @@
  * API Service para Recuperação de Senha
  */
 
-const apiBaseUrl = '/api'
+const apiBaseUrl = import.meta.env.VITE_API_URL || '/api'
 
 async function request(method: string, endpoint: string, data?: any, query?: Record<string, string>) {
   const qs = query
