@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
     container_name: hub-system
     restart: unless-stopped
     networks:

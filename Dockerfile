@@ -3,6 +3,14 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Argumentos de build para variáveis de ambiente
+ARG VITE_API_URL
+ARG VITE_PUBLIC_URL
+
+# Definir como variáveis de ambiente para o Vite
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
+
 # Copiar package files
 COPY package*.json ./
 
