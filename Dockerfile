@@ -15,7 +15,7 @@ ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
 COPY package*.json ./
 
 # Instalar dependências
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copiar código
 COPY . .
