@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL}
-        - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
+        - VITE_API_URL=https://mk-edge.com.br/api
+        - VITE_PUBLIC_URL=https://mk-edge.com.br
     container_name: hub-system
     restart: unless-stopped
     networks:
