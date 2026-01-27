@@ -1,0 +1,54 @@
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Desenvolvimento
+.env
+.env.local
+.env.development
+.env.test
+*.log
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testes
+coverage
+.nyc_output
+test
+tests
+*.test.js
+*.spec.js
+
+# Build local
+dist
+build
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentação
+*.md
+docs/
+README.md
+
+# Arquivos temporários
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Vite cache
+.vite
