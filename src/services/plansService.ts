@@ -225,8 +225,8 @@ export const plansService = {
    */
   async getPublicPlans(dominio?: string): Promise<PublicPlansResponse> {
     const url = dominio 
-      ? `/public/plans?dominio=${encodeURIComponent(dominio)}`
-      : '/public/plans'
+      ? `/api/public/plans?dominio=${encodeURIComponent(dominio)}`
+      : '/api/public/plans'
     
     return publicFetch(url, {
       method: 'GET'
