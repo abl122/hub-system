@@ -192,10 +192,8 @@ const loadPublicPlans = async () => {
   error.value = ''
 
   try {
-    // Obtém o domínio da URL ou usa o configurado no .env (VITE_TENANT_DOMAIN)
-    const dominio = import.meta.env.VITE_TENANT_DOMAIN || 'provedor.updata.com.br'
-
-    const response = await plansService.getPublicPlans(dominio)
+    // Landing Global - busca todos os planos públicos do sistema
+    const response = await plansService.getPublicPlans()
 
     if (response.success) {
       plans.value = response.plans.sort((a, b) => {
@@ -206,9 +204,10 @@ const loadPublicPlans = async () => {
         return 0
       })
 
-      tenantName.value = response.tenant_name
-      tenantColorPrimary.value = response.tenant_color_primary
-      tenantColorSecondary.value = response.tenant_color_secondary
+      // Usa valores padrão para landing global
+      tenantName.value = response.tenant_name || 'MK-Edge'
+      tenantColorPrimary.value = response.tenant_color_primary || '#667eea'
+      tenantColorSecondary.value = response.tenant_color_secondary || '#764ba2'
     } else {
       error.value = 'Erro ao carregar planos'
     }

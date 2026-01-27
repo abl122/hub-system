@@ -221,9 +221,14 @@ export const plansService = {
 
   /**
    * Listar planos públicos (SEM autenticação)
+   * Se dominio não for passado, retorna todos os planos ativos
    */
-  async getPublicPlans(dominio: string): Promise<PublicPlansResponse> {
-    return publicFetch(`/public/plans?dominio=${encodeURIComponent(dominio)}`, {
+  async getPublicPlans(dominio?: string): Promise<PublicPlansResponse> {
+    const url = dominio 
+      ? `/public/plans?dominio=${encodeURIComponent(dominio)}`
+      : '/public/plans'
+    
+    return publicFetch(url, {
       method: 'GET'
     })
   }
