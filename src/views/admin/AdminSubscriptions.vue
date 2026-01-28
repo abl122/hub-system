@@ -31,6 +31,7 @@ interface AvailablePlan {
 
 const authStore = useAuthStore()
 const tenants = ref<Tenant[]>([])
+const allPlans = ref<AvailablePlan[]>([])
 const loading = ref(false)
 const error = ref('')
 const page = ref(1)
@@ -48,6 +49,12 @@ const loadTenants = async () => {
     if (!authStore.adminToken) {
       error.value = 'Não autenticado'
       return
+    }
+
+    // Carregar planos primeiro
+    const plansResponse = await plansService.listPlans(authStore.adminToken)
+    if (plansResponse.success) {
+      allPlans.value = plansResponse.plans || []
     }
 
     const response = await tenantsService.listTenants(authStore.adminToken, page.value, limit.value)
@@ -134,6 +141,11 @@ const formatDate = (dateString: string | undefined): string => {
   return date.toLocaleDateString('pt-BR')
 }
 
+const getPlanValue = (planoSlug: string): number => {
+  const plan = allPlans.value.find(p => p.slug === planoSlug)
+  return plan?.valor_mensal || 0
+}
+
 onMounted(() => {
   loadTenants()
 })
@@ -183,7 +195,7 @@ onMounted(() => {
             </td>
 
             <td>
-              R$ {{ (tenant.assinatura.valor_mensal || 0).toFixed(2) }}
+              R$ {{ getPlanValue(tenant.assinatura.plano).toFixed(2) }}
             </td>
 
             <td>

@@ -12,8 +12,8 @@ const tenant = ref<any>(null)
 const availablePlans = ref<any[]>([])
 
 const currentPlan = computed(() => {
-  if (!tenant.value?.assinatura?.plano_id || !availablePlans.value.length) return null
-  return availablePlans.value.find(p => p._id === tenant.value.assinatura.plano_id)
+  if (!tenant.value?.assinatura?.plano || !availablePlans.value.length) return null
+  return availablePlans.value.find(p => p.slug === tenant.value.assinatura.plano)
 })
 
 const daysRemaining = computed(() => {
@@ -70,12 +70,10 @@ const loadData = async () => {
 
 const handleUpgradePlan = () => {
   // Navegar para página de upgrade
-  console.log('Upgrade plan')
 }
 
 const handleRenew = () => {
   // Navegar para página de renovação
-  console.log('Renew subscription')
 }
 
 onMounted(() => {
@@ -211,7 +209,7 @@ onMounted(() => {
           <div class="subscription-card">
             <h3>Valor Mensal</h3>
             <div class="price-info">
-              R$ {{ tenant.assinatura?.valor_mensal?.toFixed(2) || '0,00' }}
+              R$ {{ currentPlan?.valor_mensal?.toFixed(2) || '0,00' }}
             </div>
           </div>
         </div>

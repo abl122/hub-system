@@ -158,13 +158,11 @@ const handleSubmit = async () => {
       assinatura: {
         plano: formData.value.assinatura.plano,
         ativa: formData.value.assinatura.ativa,
-        valor_mensal: formData.value.assinatura.valor_mensal,
+        valor_mensal: getCurrentPlanValue.value,
         data_inicio,
         data_fim
       }
     }
-
-    console.log('Salvando assinatura:', updateData)
 
     const response = await tenantsService.updateTenant(
       formData.value.tenantId,
@@ -212,6 +210,16 @@ const getCurrentPlan = () => {
 const isVitalicioPlano = computed(() => {
   const currentPlan = getCurrentPlan()
   return currentPlan?.periodo === 'vitalicio'
+})
+
+const getCurrentPlanName = computed(() => {
+  const currentPlan = getCurrentPlan()
+  return currentPlan ? `${currentPlan.nome} (${currentPlan.slug})` : formData.value.assinatura.plano || 'Nenhum plano selecionado'
+})
+
+const getCurrentPlanValue = computed(() => {
+  const currentPlan = getCurrentPlan()
+  return currentPlan ? currentPlan.valor_mensal : formData.value.assinatura.valor_mensal
 })
 </script>
 
@@ -262,25 +270,31 @@ const isVitalicioPlano = computed(() => {
 
           <div class="form-row">
             <div class="form-group">
-              <label for="plano">Plano *</label>
-              <select id="plano" v-model="formData.assinatura.plano" class="form-input">
-                <option value="">Selecionar plano...</option>
-                <option v-for="plan in allPlans" :key="plan._id" :value="plan.slug">
-                  {{ plan.nome }}
-                </option>
-              </select>
+              <label for="plano">Plano Atual</label>
+              <input
+                id="plano"
+                v-model="getCurrentPlanName"
+                type="text"
+                class="form-input"
+                disabled
+                style="background-color: #f5f5f5; cursor: not-allowed;"
+              />
+              <small class="form-hint" style="color: #ff6b6b; font-weight: 600;">
+                ⚠️ Para alterar o plano, edite o cadastro do provedor
+              </small>
             </div>
 
             <div class="form-group">
               <label for="valor-mensal">Valor Mensal (R$)</label>
               <input
                 id="valor-mensal"
-                v-model.number="formData.assinatura.valor_mensal"
-                type="number"
-                step="0.01"
-                min="0"
+                :value="getCurrentPlanValue.toFixed(2)"
+                type="text"
                 class="form-input"
+                disabled
+                readonly
               />
+              <small class="form-help">Valor definido pelo plano selecionado</small>
             </div>
           </div>
 

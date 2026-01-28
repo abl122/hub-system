@@ -32,18 +32,25 @@ const loadPayments = async () => {
   loading.value = true
   
   try {
-    const tenantId = authStore.user?.tenant_id
-    if (!tenantId) {
+    const tenantId = localStorage.getItem('tenantId')
+    if (!tenantId || !authStore.portalToken) {
       console.warn('Tenant ID não disponível')
       loading.value = false
       return
     }
 
+    // NOTA: O endpoint de faturas para tenants ainda não está implementado
+    // Por enquanto, retornar vazio até implementar /api/tenants/:tenant_id/invoices
+    payments.value = []
+    loading.value = false
+    return
+    
+    /* Comentado até implementar endpoint correto
     // Chamar API real de faturas
     const response = await fetch(`/api/invoices/${tenantId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${authStore.token}`,
+        'Authorization': `Bearer ${authStore.portalToken}`,
         'Content-Type': 'application/json'
       }
     })
@@ -80,8 +87,7 @@ const loadPayments = async () => {
       }))
       payments.value = [...pendingPayments, ...payments.value]
     }
-
-    console.log('Faturas carregadas:', payments.value)
+    */
 
   } catch (err) {
     console.error('Erro ao carregar pagamentos:', err)

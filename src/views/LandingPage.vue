@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { plansService } from '@/services/plansService'
 import { registerService } from '@/services/registerService'
+import { paymentService } from '@/services/paymentService'
 
 const router = useRouter()
 
@@ -30,15 +31,18 @@ const tenantColorSecondary = ref('#764ba2')
 const showRegistration = ref(false)
 const selectedPlan = ref<Plan | null>(null)
 const registrationStep = ref<'form' | 'payment'>('form')
+const registeredTenantId = ref('')
 
 // Formulário
 const formData = ref({
   nome: '',
   razao_social: '',
   cnpj: '',
+  email: '',
   dominio: '',
   url_hotsite: '',
   telefone: '',
+  responsavel: '',
   admin_nome: '',
   admin_email: '',
   admin_telefone: '',
@@ -100,8 +104,8 @@ const computeUrlAgente = (dominio: string) => {
 }
 
 const validateForm = () => {
-  if (!formData.value.nome || !formData.value.cnpj || 
-      !formData.value.telefone || !formData.value.admin_nome || 
+  if (!formData.value.nome || !formData.value.cnpj || !formData.value.email ||
+      !formData.value.telefone || !formData.value.responsavel || !formData.value.admin_nome || 
       !formData.value.admin_email || !formData.value.admin_telefone || 
       !formData.value.senha) {
     error.value = 'Todos os campos obrigatórios devem ser preenchidos'
@@ -119,6 +123,11 @@ const validateForm = () => {
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(formData.value.email)) {
+    error.value = 'Email do provedor inválido'
+    return false
+  }
+  
   if (!emailRegex.test(formData.value.admin_email)) {
     error.value = 'Email do administrador inválido'
     return false
@@ -146,10 +155,11 @@ const handleRegister = async () => {
       nome: formData.value.nome,
       razao_social: formData.value.razao_social || formData.value.nome,
       cnpj: formData.value.cnpj,
+      email: formData.value.email,
       dominio: formData.value.dominio,
       url_hotsite: computeUrlAgente(formData.value.dominio),
-      email: formData.value.admin_email,
       telefone: formData.value.telefone,
+      admin_name: formData.value.responsavel,
       admin_nome: formData.value.admin_nome,
       admin_email: formData.value.admin_email,
       admin_telefone: formData.value.admin_telefone,
@@ -159,6 +169,7 @@ const handleRegister = async () => {
 
     if (response.success) {
       error.value = ''
+      registeredTenantId.value = response.tenant_id || ''
       registrationStep.value = 'payment'
     } else {
       error.value = response.message || 'Erro ao realizar cadastro'
@@ -175,10 +186,13 @@ const handlePayment = async () => {
   loading.value = true
 
   try {
-    // TODO: Integrar com EFI
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Simular conclusão de pagamento (sem integração real com EFI por enquanto)
+    // Em produção, seria verificado via webhook ou consulta à API da EFI
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
+    // Concluir cadastro marcando como pago/ativo
     showRegistration.value = false
+    alert('✅ Cadastro concluído com sucesso! Você já pode fazer login no portal.')
     router.push({ name: 'portal-login' })
   } catch (err: any) {
     error.value = err.message || 'Erro ao processar pagamento'
@@ -390,6 +404,49 @@ onMounted(() => {
 
             <div class="form-row">
               <div class="form-group">
+                <label for="email">Email do Provedor *</label>
+                <input
+                  id="email"
+                  v-model="formData.email"
+                  type="email"
+                  placeholder="contato@provedor.com.br"
+                  class="input-field"
+                  :disabled="loading"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="telefone">Telefone *</label>
+                <input
+                  id="telefone"
+                  v-model="formData.telefone"
+                  type="text"
+                  placeholder="(00) 00000-0000"
+                  class="input-field"
+                  :disabled="loading"
+                  @input="handlePhoneInput"
+                  maxlength="15"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="responsavel">Responsável pela Empresa *</label>
+              <input
+                id="responsavel"
+                v-model="formData.responsavel"
+                type="text"
+                placeholder="Nome do responsável"
+                class="input-field"
+                :disabled="loading"
+                required
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
                 <label for="cnpj">CNPJ *</label>
                 <input
                   id="cnpj"
@@ -413,23 +470,6 @@ onMounted(() => {
                   placeholder="https://seu-hotsite.mk-auth.com"
                   class="input-field"
                   :disabled="loading"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="telefone">Telefone *</label>
-                <input
-                  id="telefone"
-                  v-model="formData.telefone"
-                  type="text"
-                  placeholder="(00) 00000-0000"
-                  class="input-field"
-                  :disabled="loading"
-                  @input="handlePhoneInput"
-                  maxlength="15"
                   required
                 />
               </div>

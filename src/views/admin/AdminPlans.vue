@@ -150,24 +150,11 @@ onMounted(() => {
           <span class="period">por {{ plan.periodo }}</span>
         </div>
 
-        <div class="plan-stats">
-          <div class="stat">
-            <span class="label">Limite de clientes</span>
-            <span class="value">
-              {{ plan.limite_clientes === null ? 'Ilimitado' : plan.limite_clientes }}
-            </span>
-          </div>
-          <div v-if="plan.dias_trial" class="stat">
-            <span class="label">Trial</span>
-            <span class="value">{{ plan.dias_trial }} dias</span>
-          </div>
-        </div>
-
         <div v-if="plan.recursos && plan.recursos.length > 0" class="plan-features">
           <h4>Recursos</h4>
           <ul>
             <li v-for="(feature, idx) in plan.recursos.slice(0, 3)" :key="idx">
-              ✓ {{ feature }}
+              {{ feature }}
             </li>
             <li v-if="plan.recursos.length > 3" class="more-features">
               + {{ plan.recursos.length - 3 }} mais
@@ -311,7 +298,7 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  padding: 1.75rem;
+  padding: 1.25rem;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -348,7 +335,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .plan-header h3 {
@@ -385,19 +372,19 @@ onMounted(() => {
 
 .plan-description {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 1.25rem;
-  line-height: 1.5;
-  min-height: 40px;
+  font-size: 0.875rem;
+  margin-bottom: 0.875rem;
+  line-height: 1.4;
+  min-height: 32px;
 }
 
 /* ===== PLAN PRICE ===== */
 .plan-price {
   text-align: center;
-  padding: 1.25rem;
+  padding: 1rem;
   background: var(--primary-light);
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .price {
@@ -418,7 +405,7 @@ onMounted(() => {
 
 /* ===== PLAN STATS ===== */
 .plan-stats {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .stat {
@@ -447,7 +434,7 @@ onMounted(() => {
 /* ===== PLAN FEATURES ===== */
 .plan-features {
   flex: 1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .plan-features h4 {
@@ -465,14 +452,14 @@ onMounted(() => {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .plan-features li {
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: 1.4;
   display: flex;
   align-items: center;
   gap: 0.5rem;

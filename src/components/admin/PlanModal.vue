@@ -267,9 +267,9 @@ const handleClose = () => {
               <label for="periodo">Período</label>
               <select id="periodo" v-model="formData.periodo" class="form-input">
                 <option value="mensal">Mensal</option>
-                <option value="trimestral">Trimestral</option>
                 <option value="semestral">Semestral</option>
                 <option value="anual">Anual</option>
+                <option value="vitalicio">Vitalício</option>
               </select>
             </div>
           </div>
@@ -282,36 +282,6 @@ const handleClose = () => {
               class="form-checkbox"
             />
             <label for="recorrente">Recorrente</label>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h4>Limite e Trial</h4>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="limite-clientes">Limite de Clientes</label>
-              <input
-                id="limite-clientes"
-                v-model.number="formData.limite_clientes"
-                type="number"
-                min="0"
-                placeholder="Deixe vazio para ilimitado"
-                class="form-input"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="dias-trial">Dias Trial</label>
-              <input
-                id="dias-trial"
-                v-model.number="formData.dias_trial"
-                type="number"
-                min="0"
-                max="365"
-                class="form-input"
-              />
-            </div>
           </div>
         </div>
 

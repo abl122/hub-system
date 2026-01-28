@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import { tenantsService } from '@/services/tenantsService'
 import { plansService } from '@/services/plansService'
 
@@ -53,6 +53,7 @@ const planos = ref<Plan[]>([])
 const showPassword = ref(false)
 const senhaOriginal = ref('')
 const portalUser = ref<{ login: string; nome: string; ativo: boolean } | null>(null)
+const hasSenhaAtual = ref(false)
 
 const formData = ref<Provider>({
   provedor: {
@@ -64,7 +65,7 @@ const formData = ref<Provider>({
     dominio: '',
     ativo: true
   },
-  plano_atual: 'trial',
+  plano_atual: '',
   senha_portal: '',
   agente: {
     url: '',
@@ -73,40 +74,23 @@ const formData = ref<Provider>({
   }
 })
 
-const title = computed(() => (props.provider ? 'Editar Provedor' : 'Novo Provedor'))
+const title = computed(() => (props.provider?._id ? 'Editar Provedor' : 'Adicionar Provedor'))
 
-const isEditing = computed(() => !!props.provider)
+const isEditing = computed(() => !!props.provider?._id)
 
 const loadPlanos = async () => {
   try {
-    // Se estamos editando um provider, usamos o ID dele
-    // Caso contrário, carregamos todos os planos públicos
-    if (props.provider?._id) {
-      const response = await plansService.listTenantPlans(
-        props.provider._id,
-        props.adminToken,
-        true
-      )
-      planos.value = response.plans.map(p => ({
-        _id: p._id,
-        nome: p.nome,
-        slug: p.slug,
-        valor_mensal: p.valor_mensal,
-        ativo: p.ativo
-      }))
-    } else {
-      // Para novos provedores, carregar planos gerais
-      const response = await plansService.listPlans(props.adminToken, undefined, true)
-      planos.value = response.plans.map(p => ({
-        _id: p._id,
-        nome: p.nome,
-        slug: p.slug,
-        valor_mensal: p.valor_mensal,
-        ativo: p.ativo
-      }))
-    }
+    // Sempre carregar planos gerais do sistema (não específicos do tenant)
+    const response = await plansService.listPlans(props.adminToken, undefined, true)
+    planos.value = response.plans.map(p => ({
+      _id: p._id,
+      nome: p.nome,
+      slug: p.slug,
+      valor_mensal: p.valor_mensal,
+      ativo: p.ativo
+    }))
   } catch (error) {
-    console.error('Erro ao carregar planos:', error)
+    console.error('❌ Erro ao carregar planos:', error)
     errorMessage.value = 'Erro ao carregar planos'
   }
 }
@@ -115,17 +99,14 @@ const loadPlanos = async () => {
 watch(
   () => formData.value.provedor.dominio,
   (newDominio) => {
-    const d = (newDominio || '').trim()
-    if (!d) return
-
-    // Não limpar protocolo/subdomínio. Apenas remover barra final.
-    const hasProtocol = /^https?:\/\//.test(d)
-    const noTrailing = d.replace(/\/$/, '')
-
-    // Se veio com protocolo, usar diretamente; senão, prefixar com provedor.
-    formData.value.agente.url = hasProtocol
-      ? `${noTrailing}/admin/addons/mk-edge/api.php`
-      : `https://provedor.${noTrailing}/admin/addons/mk-edge/api.php`
+    const domain = (newDominio || '').trim()
+    if (!domain) return
+    
+    // Remove apenas barra final se houver
+    const cleanDomain = domain.replace(/\/$/, '')
+    
+    // Gera URL do agente mantendo exatamente o que foi digitado (com ou sem protocolo)
+    formData.value.agente.url = `${cleanDomain}/admin/addons/mk-edge/api.php`
   }
 )
 
@@ -139,7 +120,27 @@ watch(
       
       await loadPlanos()
       if (props.provider) {
-        formData.value = { ...props.provider }
+        // Deep copy para garantir que todos os campos sejam carregados
+        formData.value = {
+          _id: props.provider._id,
+          provedor: {
+            nome: props.provider.provedor?.nome || '',
+            razao_social: props.provider.provedor?.razao_social || '',
+            cnpj: props.provider.provedor?.cnpj || '',
+            email: props.provider.provedor?.email || '',
+            telefone: props.provider.provedor?.telefone || '',
+            dominio: props.provider.provedor?.dominio || '',
+            admin_name: props.provider.provedor?.admin_name || '',
+            ativo: props.provider.provedor?.ativo ?? true
+          },
+          plano_atual: props.provider.plano_atual || '',
+          senha_portal: '',
+          agente: {
+            url: props.provider.agente?.url || '',
+            token: props.provider.agente?.token || '',
+            ativo: props.provider.agente?.ativo ?? false
+          }
+        }
         
         // Função para limpar apenas barra final
         const cleanDomain = (domain: string): string => {
@@ -150,7 +151,6 @@ watch(
         if (formData.value.provedor.dominio) {
           const cleanedDomain = cleanDomain(formData.value.provedor.dominio)
           formData.value.provedor.dominio = cleanedDomain
-          console.log('Domínio ajustado:', cleanedDomain)
         }
         
         // Se ainda não tiver domínio, tentar extrair da URL do agente
@@ -158,34 +158,48 @@ watch(
           const urlMatch = formData.value.agente.url.match(/https?:\/\/(provedor\.)?([^/]+)/)
           if (urlMatch) {
             formData.value.provedor.dominio = urlMatch[2]
-            console.log('Domínio extraído da URL:', formData.value.provedor.dominio)
           }
         }
         
-        console.log('Dominio carregado:', formData.value.provedor.dominio)
-        
-        // Senha fica em users collection, não no tenant
-        // Sempre limpar o campo (usuário só preenche se quer alterar a senha do portal)
-        formData.value.senha_portal = ''
         senhaOriginal.value = '' // Não temos acesso à senha hasheada
 
-        // Buscar usuário do portal para logs úteis
-        try {
-          const u = await tenantsService.getPortalUser(props.provider._id!, props.adminToken)
-          portalUser.value = u.user || null
-          if (portalUser.value) {
-            console.log('PortalUser:', {
-              login: portalUser.value.login,
-              ativo: portalUser.value.ativo
-            })
-          } else {
-            console.log('PortalUser: não cadastrado')
+        // Buscar usuário do portal se o tenant já existe
+        if (props.provider._id) {
+          try {
+            console.log('🔍 Buscando usuário do portal para tenant:', props.provider._id)
+            const response = await tenantsService.getPortalUser(props.provider._id, props.adminToken)
+            console.log('📦 Resposta completa da API:', response)
+            
+            if (response.success && response.user) {
+              portalUser.value = response.user
+              hasSenhaAtual.value = true
+              
+              // Força atualização do DOM
+              await nextTick()
+              
+              console.log('✅ Usuário portal encontrado:', {
+                login: response.user.login,
+                nome: response.user.nome,
+                ativo: response.user.ativo,
+                hasSenhaAtual: hasSenhaAtual.value
+              })
+            } else {
+              portalUser.value = null
+              hasSenhaAtual.value = false
+              console.log('⚠️ Nenhum usuário portal encontrado')
+            }
+          } catch (e) {
+            // Falha ao carregar PortalUser
+            portalUser.value = null
+            hasSenhaAtual.value = false
+            console.error('❌ Erro ao carregar usuário do portal:', e)
           }
-        } catch (e) {
-          console.log('Falha ao carregar PortalUser')
+        } else {
+          console.log('⚠️ Provider sem _id, não pode buscar usuário')
         }
       } else {
         resetForm()
+        hasSenhaAtual.value = false
         senhaOriginal.value = ''
       }
     }
@@ -204,38 +218,12 @@ const resetForm = () => {
       admin_name: '',
       ativo: true
     },
-    plano_atual: 'trial',
+    plano_atual: '',
     senha_portal: '',
     agente: {
       url: '',
       token: '',
       ativo: false
-    }
-  }
-
-  const handleResetPortalPassword = async () => {
-    if (!props.provider?._id) return
-    isLoading.value = true
-    try {
-      const resp = await tenantsService.resetPortalPassword(
-        props.provider._id,
-        { generate: true },
-        props.adminToken
-      )
-      if (resp.success && resp.password) {
-        formData.value.senha_portal = resp.password
-        showPassword.value = true
-        successMessage.value = 'Senha do portal resetada. Anote a nova senha.'
-        setTimeout(() => (successMessage.value = ''), 3000)
-      } else {
-        errorMessage.value = resp.message || 'Não foi possível resetar a senha'
-        setTimeout(() => (errorMessage.value = ''), 3000)
-      }
-    } catch (e: any) {
-      errorMessage.value = e.message || 'Erro ao resetar senha'
-      setTimeout(() => (errorMessage.value = ''), 3000)
-    } finally {
-      isLoading.value = false
     }
   }
 }
@@ -264,12 +252,51 @@ const validateForm = (): boolean => {
     return false
   }
 
+  if (!formData.value.provedor.telefone?.trim()) {
+    errorMessage.value = 'Telefone é obrigatório'
+    return false
+  }
+
   if (!formData.value.provedor.dominio?.trim()) {
     errorMessage.value = 'Domínio é obrigatório'
     return false
   }
 
   return true
+}
+
+// Máscaras de formatação
+const formatCNPJ = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  let value = input.value.replace(/\D/g, '')
+  
+  if (value.length <= 14) {
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2')
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2')
+    value = value.replace(/(\d{4})(\d)/, '$1-$2')
+  }
+  
+  formData.value.provedor.cnpj = value
+}
+
+const formatPhone = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  let value = input.value.replace(/\D/g, '')
+  
+  if (value.length <= 11) {
+    if (value.length <= 10) {
+      // Telefone fixo: (11) 3000-0000
+      value = value.replace(/^(\d{2})(\d)/, '($1) $2')
+      value = value.replace(/(\d{4})(\d)/, '$1-$2')
+    } else {
+      // Celular: (11) 90000-0000
+      value = value.replace(/^(\d{2})(\d)/, '($1) $2')
+      value = value.replace(/(\d{5})(\d)/, '$1-$2')
+    }
+  }
+  
+  formData.value.provedor.telefone = value
 }
 
 const handleSubmit = async () => {
@@ -303,19 +330,7 @@ const handleSubmit = async () => {
       // Senha do portal: apenas enviar se foi preenchida (para atualizar o user portal)
       if (formData.value.senha_portal && formData.value.senha_portal.trim()) {
         updateData.senha_portal = formData.value.senha_portal
-        console.log('Salvando: nova senha do portal será atualizada no user')
-      } else {
-        console.log('Senha não alterada: campo vazio, mantém senha atual do user portal')
       }
-
-      console.log('Dados a atualizar no tenant:', updateData)
-
-      console.log('🔍 DETALHES DOS DADOS ENVIADOS:')
-      console.log('   Nome:', updateData.provedor.nome)
-      console.log('   Domínio:', updateData.provedor.dominio)
-      console.log('   Admin Name:', updateData.provedor.admin_name)
-      console.log('   Senha Portal:', updateData.senha_portal ? '***fornecida***' : 'NÃO')
-      console.log('   Ativo:', updateData.provedor.ativo)
 
       const response = await tenantsService.updateTenant(
         props.provider._id,
@@ -325,6 +340,7 @@ const handleSubmit = async () => {
 
       if (response.success) {
         successMessage.value = 'Provedor atualizado com sucesso!'
+        errorMessage.value = ''
         setTimeout(() => {
           successMessage.value = ''
           emit('save', formData.value)
@@ -332,6 +348,7 @@ const handleSubmit = async () => {
         }, 1500)
       } else {
         errorMessage.value = response.message || 'Erro ao atualizar provedor'
+        successMessage.value = ''
       }
     } else {
       // Create
@@ -344,9 +361,9 @@ const handleSubmit = async () => {
           telefone: formData.value.provedor.telefone,
           dominio: cleanDomainForSave(formData.value.provedor.dominio),
           admin_name: formData.value.provedor.admin_name,
-          ativo: formData.value.provedor.ativo
+          ativo: true // Sempre ativo na criação
         },
-        plano_atual: formData.value.plano_atual,
+        plano_atual: formData.value.plano_atual, // Usa o plano selecionado
         agente: formData.value.agente || {
           url: '',
           token: '',
@@ -366,6 +383,7 @@ const handleSubmit = async () => {
 
       if (response.success) {
         successMessage.value = 'Provedor criado com sucesso!'
+        errorMessage.value = ''
         setTimeout(() => {
           successMessage.value = ''
           emit('save', formData.value)
@@ -373,11 +391,52 @@ const handleSubmit = async () => {
         }, 1500)
       } else {
         errorMessage.value = response.message || 'Erro ao criar provedor'
+        successMessage.value = ''
       }
     }
   } catch (error: any) {
-    errorMessage.value = error.message || 'Erro ao salvar provedor'
+    const errorMsg = error.message || 'Erro ao salvar provedor'
     successMessage.value = ''
+    
+    // Mensagem específica para CNPJ duplicado
+    if (errorMsg.toLowerCase().includes('cnpj')) {
+      errorMessage.value = '❌ CNPJ já cadastrado! Use um CNPJ diferente ou edite o provedor existente.'
+    } else {
+      errorMessage.value = errorMsg
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleDelete = async () => {
+  if (!props.provider?._id) return
+  
+  const confirmDelete = confirm(
+    `Tem certeza que deseja excluir o provedor "${formData.value.provedor.nome}"?\n\nEsta ação não pode ser desfeita!`
+  )
+  
+  if (!confirmDelete) return
+  
+  isLoading.value = true
+  
+  try {
+    const response = await tenantsService.deleteTenant(
+      props.provider._id,
+      props.adminToken
+    )
+    
+    if (response.success) {
+      successMessage.value = 'Provedor excluído com sucesso!'
+      setTimeout(() => {
+        emit('save')
+        emit('close')
+      }, 1000)
+    } else {
+      errorMessage.value = response.message || 'Erro ao excluir provedor'
+    }
+  } catch (error: any) {
+    errorMessage.value = error.message || 'Erro ao excluir provedor'
   } finally {
     isLoading.value = false
   }
@@ -404,12 +463,27 @@ const handleClose = () => {
         <div v-if="successMessage" class="success-message">
           ✓ {{ successMessage }}
         </div>
-        <div v-if="errorMessage" class="error-message">
+        <div v-if="errorMessage" class="error-message" :class="{ 'error-highlight': errorMessage.includes('CNPJ') }">
           ✗ {{ errorMessage }}
         </div>
 
         <div class="form-section">
           <h4>Informações do Provedor</h4>
+
+          <div v-if="isEditing" class="form-group">
+            <label for="tenant-id">ID do Provedor (Tenant ID)</label>
+            <input
+              id="tenant-id"
+              :value="formData._id"
+              type="text"
+              class="form-input"
+              readonly
+              style="background-color: #f3f4f6; cursor: not-allowed;"
+            />
+            <small class="form-hint">
+              Este ID é usado como identificador do provedor no sistema e na integração.
+            </small>
+          </div>
 
           <div class="form-group">
             <label for="nome">Nome do Provedor *</label>
@@ -442,6 +516,8 @@ const handleClose = () => {
                 type="text"
                 placeholder="00.000.000/0000-00"
                 class="form-input"
+                maxlength="18"
+                @input="formatCNPJ"
               />
             </div>
 
@@ -459,13 +535,15 @@ const handleClose = () => {
 
           <div class="form-row">
             <div class="form-group">
-              <label for="telefone">Telefone</label>
+              <label for="telefone">Telefone *</label>
               <input
                 id="telefone"
                 v-model="formData.provedor.telefone"
                 type="text"
                 placeholder="(11) 3000-0000"
                 class="form-input"
+                maxlength="15"
+                @input="formatPhone"
               />
             </div>
 
@@ -488,7 +566,7 @@ const handleClose = () => {
                 id="senha-portal"
                 v-model="formData.senha_portal"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="Senha não exibida; deixe vazio para manter"
+                :placeholder="hasSenhaAtual ? '******** (deixe vazio para manter)' : 'Digite a senha do portal'"
                 class="form-input"
               />
               <label class="checkbox-label">
@@ -498,20 +576,29 @@ const handleClose = () => {
                 />
                 Mostrar senha
               </label>
-              <button type="button" class="btn btn-secondary" @click="handleResetPortalPassword" v-if="isEditing">
-                Resetar e mostrar nova senha
-              </button>
+              <small v-if="hasSenhaAtual" class="form-hint" style="color: #10b981; font-weight: 600;">
+                ✓ Senha do portal já cadastrada.
+              </small>
+              <small v-else-if="isEditing" class="form-hint" style="color: #ff9800; font-weight: 600;">
+                ⚠️ Nenhuma senha cadastrada.
+              </small>
+              <small v-else class="form-hint">
+                Senha para acesso ao portal do provedor (obrigatório)
+              </small>
             </div>
 
             <div class="form-group">
-              <label for="dominio">Domínio *</label>
+              <label for="dominio">Domínio Completo *</label>
               <input
                 id="dominio"
                 v-model="formData.provedor.dominio"
                 type="text"
-                placeholder="provedor.com.br"
+                placeholder="https://provedor.com.br"
                 class="form-input"
               />
+              <small class="form-hint">
+                Digite o domínio completo com https:// - será usado para gerar a URL do agente
+              </small>
             </div>
           </div>
 
@@ -526,6 +613,20 @@ const handleClose = () => {
             />
             <small class="form-hint">
               Gerada automaticamente, mas pode ser editada manualmente.
+            </small>
+          </div>
+
+          <div v-if="isEditing" class="form-group">
+            <label for="agente-token">Token do Agente</label>
+            <input
+              id="agente-token"
+              v-model="formData.agente.token"
+              type="text"
+              class="form-input"
+              placeholder="Token de autenticação do addon MK-Edge"
+            />
+            <small class="form-hint">
+              Token gerado automaticamente para autenticação do addon no servidor MK-Auth.
             </small>
           </div>
         </div>
@@ -569,12 +670,24 @@ const handleClose = () => {
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-secondary" @click="handleClose" :disabled="isLoading">
-          Cancelar
-        </button>
-        <button class="btn btn-primary" @click="handleSubmit" :disabled="isLoading">
-          {{ isLoading ? 'Salvando...' : 'Salvar' }}
-        </button>
+        <div class="footer-left">
+          <button 
+            v-if="isEditing" 
+            class="btn btn-danger" 
+            @click="handleDelete" 
+            :disabled="isLoading"
+          >
+            Excluir
+          </button>
+        </div>
+        <div class="footer-right">
+          <button class="btn btn-secondary" @click="handleClose" :disabled="isLoading">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" @click="handleSubmit" :disabled="isLoading">
+            {{ isLoading ? 'Salvando...' : (isEditing ? 'Salvar' : 'Adicionar') }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -768,6 +881,13 @@ const handleClose = () => {
   animation: slideIn 0.3s ease-out;
 }
 
+.error-highlight {
+  background: #ffebee !important;
+  border-left-color: #d32f2f !important;
+  font-weight: 600;
+  font-size: 1.05em;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -781,11 +901,22 @@ const handleClose = () => {
 
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 1rem;
   padding: 1.5rem;
   border-top: 2px solid #e0e0e0;
   background: #f8f9fa;
+}
+
+.footer-left {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.footer-right {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .btn {
@@ -819,6 +950,15 @@ const handleClose = () => {
 
 .btn-secondary:hover:not(:disabled) {
   background: #d0d0d0;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
 }
 
 .form-hint {

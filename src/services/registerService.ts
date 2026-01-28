@@ -30,7 +30,7 @@ export const registerService = {
    */
   async register(data: RegisterData): Promise<RegisterResponse> {
     // Usar publicFetch que já está configurado corretamente
-    return publicFetch('/register', {
+    return publicFetch('/api/register', {
       method: 'POST',
       body: JSON.stringify(data)
     })

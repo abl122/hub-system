@@ -48,6 +48,10 @@ export async function apiFetch(
     const data = await response.json()
 
     if (!response.ok) {
+      // Mensagem específica para erro 409 (Conflict)
+      if (response.status === 409) {
+        throw new Error(data.message || 'Registro duplicado')
+      }
       throw new Error(data.message || `Erro ${response.status}`)
     }
 
@@ -97,6 +101,10 @@ export async function appFetch(
     const data = await response.json()
 
     if (!response.ok) {
+      // Mensagem específica para erro 409 (Conflict)
+      if (response.status === 409) {
+        throw new Error(data.message || 'Registro duplicado')
+      }
       throw new Error(data.message || `Erro ${response.status}`)
     }
 

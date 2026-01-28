@@ -72,9 +72,12 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('portalUser', JSON.stringify(user))
         localStorage.setItem('tenantId', response.tenant.id)
         
-        // Salvar agentToken se disponível
+        // Salvar agentToken e agentUrl se disponível
         if (response.tenant.agente?.token) {
           localStorage.setItem('agentToken', response.tenant.agente.token)
+        }
+        if (response.tenant.agente?.url) {
+          localStorage.setItem('agentUrl', response.tenant.agente.url)
         }
 
         return true

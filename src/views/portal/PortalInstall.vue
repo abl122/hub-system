@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { tenantsService } from '@/services/tenantsService'
 
 const authStore = useAuthStore()
 const copied = ref(false)
 const addonToken = ref('')
 const appToken = ref('')
+const agentUrl = ref('')
+const loading = ref(false)
 
 // Gera conteúdo do config.php com token do cliente
 const configPhpContent = computed(() => {
@@ -45,20 +48,81 @@ const copyInstallCommand = async () => {
   }
 }
 
-onMounted(() => {
-  // Tentar buscar do authStore primeiro
-  const tenantId = authStore.portalUser?.id || localStorage.getItem('tenantId') || ''
-  const agentToken = localStorage.getItem('agentToken') || ''
+const reloadTenantData = async () => {
+  loading.value = true
   
-  addonToken.value = agentToken
-  appToken.value = tenantId
+  try {
+    const tenantId = authStore.portalUser?.id || localStorage.getItem('tenantId') || ''
+    const token = authStore.portalToken || localStorage.getItem('portalToken') || ''
+    
+    if (tenantId && token) {
+      const response = await tenantsService.getTenant(tenantId, token)
+      
+      if (response.success && response.tenant) {
+        if (response.tenant.agente?.token) {
+          localStorage.setItem('agentToken', response.tenant.agente.token)
+          addonToken.value = response.tenant.agente.token
+        }
+        
+        if (response.tenant.agente?.url) {
+          localStorage.setItem('agentUrl', response.tenant.agente.url)
+          agentUrl.value = response.tenant.agente.url
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Erro ao recarregar dados:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  loading.value = true
   
-  // Log para debug
-  console.log('PortalInstall carregado:')
-  console.log('  - addonToken:', addonToken.value ? addonToken.value.substring(0, 10) + '...' : 'VAZIO')
-  console.log('  - appToken:', appToken.value)
-  console.log('  - localStorage agentToken:', localStorage.getItem('agentToken') ? 'EXISTS' : 'MISSING')
-  console.log('  - localStorage tenantId:', localStorage.getItem('tenantId') ? 'EXISTS' : 'MISSING')
+  try {
+    // Buscar dados atualizados do tenant da API
+    const tenantId = authStore.portalUser?.id || localStorage.getItem('tenantId') || ''
+    const token = authStore.portalToken || localStorage.getItem('portalToken') || ''
+    
+    if (tenantId && token) {
+      const response = await tenantsService.getTenant(tenantId, token)
+      
+      if (response.success && response.tenant) {
+        // Atualizar localStorage com dados mais recentes
+        if (response.tenant.agente?.token) {
+          localStorage.setItem('agentToken', response.tenant.agente.token)
+          addonToken.value = response.tenant.agente.token
+        }
+        
+        if (response.tenant.agente?.url) {
+          localStorage.setItem('agentUrl', response.tenant.agente.url)
+          agentUrl.value = response.tenant.agente.url
+        }
+        
+        appToken.value = tenantId
+      } else {
+        // Fallback para localStorage se API falhar
+        addonToken.value = localStorage.getItem('agentToken') || ''
+        agentUrl.value = localStorage.getItem('agentUrl') || ''
+        appToken.value = tenantId
+      }
+    } else {
+      // Carregar do localStorage como fallback
+      addonToken.value = localStorage.getItem('agentToken') || ''
+      agentUrl.value = localStorage.getItem('agentUrl') || ''
+      appToken.value = tenantId
+    }
+  } catch (error) {
+    console.error('❌ Erro ao buscar dados do tenant:', error)
+    // Fallback para localStorage
+    const tenantId = authStore.portalUser?.id || localStorage.getItem('tenantId') || ''
+    addonToken.value = localStorage.getItem('agentToken') || ''
+    agentUrl.value = localStorage.getItem('agentUrl') || ''
+    appToken.value = tenantId
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
@@ -66,23 +130,36 @@ onMounted(() => {
   <div class="install-page">
     <div class="page-header">
       <h1>Instalar Addon MK-Edge</h1>
+      <button @click="reloadTenantData" class="btn-reload" :disabled="loading">
+        🔄 Atualizar Configuração
+      </button>
     </div>
 
     <div class="install-content">
       
+      <!-- Loading state -->
+      <div v-if="loading" class="loading-state">
+        <p>Carregando configuração...</p>
+      </div>
+      
       <!-- Configuração -->
-      <div class="config-section">
+      <div v-else class="config-section">
         <h2>Configuração</h2>
         
         <div class="config-grid">
           <div class="config-item">
             <label>Token do Addon MK-Edge</label>
-            <code>{{ addonToken }}</code>
+            <code>{{ addonToken || 'Aguardando configuração...' }}</code>
           </div>
           
           <div class="config-item">
+            <label>URL do Agente MK-Auth</label>
+            <code>{{ agentUrl || 'Não configurado' }}</code>
+          </div>
+
+          <div class="config-item">
             <label>Token do App MK-Edge</label>
-            <code>{{ appToken }}</code>
+            <code>{{ appToken || 'Não disponível' }}</code>
           </div>
         </div>
 
@@ -129,6 +206,36 @@ onMounted(() => {
 
 .page-header {
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-reload {
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-reload:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-reload:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
 }
 
 .page-header h1 {
