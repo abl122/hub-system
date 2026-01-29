@@ -233,6 +233,59 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
+
+      <!-- Cards para mobile -->
+      <div v-if="!loading" class="subscriptions-grid">
+        <div v-for="tenant in tenants" :key="tenant._id" class="subscription-card">
+          <div class="card-header">
+            <h3>{{ tenant.provedor.nome }}</h3>
+            <span class="badge" :class="{ 'badge-active': tenant.assinatura.ativa }">
+              {{ tenant.assinatura.ativa ? 'Ativa' : 'Inativa' }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <span class="card-label">CNPJ:</span>
+              <span class="card-value">{{ tenant.provedor.cnpj }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Plano:</span>
+              <span class="card-value">{{ tenant.assinatura.plano }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Valor Mensal:</span>
+              <span class="card-value">R$ {{ getPlanValue(tenant.assinatura.plano).toFixed(2) }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Início:</span>
+              <span class="card-value">{{ formatDate(tenant.assinatura.data_inicio) }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Término:</span>
+              <span class="card-value" :class="getDaysRemaining(tenant.assinatura.data_fim) === 'Expirada' ? 'expired' : ''">
+                {{ formatDate(tenant.assinatura.data_fim) }}
+              </span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Dias Restantes:</span>
+              <span class="card-value">{{ getDaysRemaining(tenant.assinatura.data_fim) }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-icon btn-icon-edit" @click="openEditModal(tenant)" title="Editar">
+              ✏️
+            </button>
+            <button
+              class="btn-icon btn-icon-toggle"
+              :class="{ active: tenant.assinatura.ativa }"
+              @click="toggleSubscription(tenant._id)"
+              :title="tenant.assinatura.ativa ? 'Desativar' : 'Ativar'"
+            >
+              {{ tenant.assinatura.ativa ? '⊗' : '✓' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-if="tenants.length > 0" class="pagination">
@@ -267,7 +320,7 @@ onMounted(() => {
 
 .page-header {
   margin-bottom: 2rem;
-  margin-top: 2rem;
+  /* margin-top: 2rem; */
   text-align: left;
 }
 
@@ -566,6 +619,10 @@ onMounted(() => {
 }
 
 /* ===== RESPONSIVE ===== */
+.subscriptions-grid {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .subscriptions-table th,
   .subscriptions-table td {
@@ -589,14 +646,87 @@ onMounted(() => {
     font-size: 1.5rem;
   }
 
-  .subscriptions-table th,
-  .subscriptions-table td {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.85rem;
+  .subscriptions-table {
+    display: none;
   }
 
-  .subscriptions-table th {
-    font-size: 0.75rem;
+  .subscriptions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .subscription-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .subscription-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+  }
+
+  .card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-label {
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+
+  .card-value {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+
+  .card-value.expired {
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  .card-actions .btn-icon {
+    flex: 1;
+    justify-content: center;
   }
 
   .provider-info small {
@@ -630,14 +760,42 @@ onMounted(() => {
     margin-bottom: 1rem;
   }
 
-  .subscriptions-table th {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.7rem;
+  .subscriptions-grid {
+    grid-template-columns: 1fr;
   }
 
-  .subscriptions-table td {
-    padding: 0.5rem 0.25rem;
+  .subscription-card {
+    padding: 1rem;
+  }
+
+  .card-header {
+    padding-bottom: 0.75rem;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+  }
+
+  .card-body {
+    gap: 0.5rem;
+  }
+
+  .card-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .card-label {
     font-size: 0.8rem;
+  }
+
+  .card-value {
+    font-size: 0.9rem;
+  }
+
+  .card-actions {
+    padding-top: 0.75rem;
   }
 
   .btn-icon {

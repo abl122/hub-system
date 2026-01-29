@@ -308,10 +308,6 @@ const handleKeypress = (e: KeyboardEvent) => {
           Esqueceu a senha?
         </button>
       </form>
-
-      <p class="footer-text">
-        Não tem uma conta? <router-link to="/">Solicite acesso</router-link>
-      </p>
     </div>
 
     <!-- Recovery Modal -->
@@ -530,7 +526,7 @@ const handleKeypress = (e: KeyboardEvent) => {
 .login-container {
   width: 100%;
   max-width: 450px;
-  padding: 20px;
+  padding: 24px;
 }
 
 .login-card {
@@ -544,7 +540,7 @@ const handleKeypress = (e: KeyboardEvent) => {
 
 @media (max-width: 768px) {
   .login-container {
-    padding: 12px;
+    padding: 24px;
   }
 
   .login-card {
@@ -563,11 +559,11 @@ const handleKeypress = (e: KeyboardEvent) => {
 .subtitle {
   text-align: center;
   color: #999;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .form-group label {

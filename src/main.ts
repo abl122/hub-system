@@ -5,6 +5,7 @@ import router from './router'
 import { useAuthStore } from './stores/auth'
 import './style.css'
 import './styles/admin.css'
+import './assets/responsive.css'
 
 const app = createApp(App)
 

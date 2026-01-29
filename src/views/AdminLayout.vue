@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const sidebarOpen = ref(true)
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+const sidebarOpen = ref(typeof window !== 'undefined' ? window.innerWidth >= 768 : true)
 
 const isLoggedIn = computed(() => authStore.isAdminAuthenticated)
 const isLoginRoute = computed(() => route.name === 'admin-login')
+const isMobile = computed(() => windowWidth.value < 768)
 
 const logout = () => {
   authStore.logoutAdmin()
@@ -18,7 +20,7 @@ const logout = () => {
 
 const navigateTo = (name: string) => {
   router.push({ name })
-  if (window.innerWidth < 768) {
+  if (windowWidth.value < 768) {
     sidebarOpen.value = false
   }
 }
@@ -26,10 +28,25 @@ const navigateTo = (name: string) => {
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
+
+onMounted(() => {
+  const handleResize = () => {
+    windowWidth.value = window.innerWidth
+  }
+  window.addEventListener('resize', handleResize)
+  return () => window.removeEventListener('resize', handleResize)
+})
 </script>
 
 <template>
   <div v-if="isLoggedIn && !isLoginRoute" class="admin-layout">
+    <!-- Overlay for mobile sidebar -->
+    <div 
+      v-if="sidebarOpen && isMobile"
+      class="sidebar-overlay"
+      @click="sidebarOpen = false"
+    ></div>
+
     <!-- Sidebar -->
     <aside class="admin-sidebar" :class="{ open: sidebarOpen }">
       <div class="sidebar-header">
@@ -203,6 +220,27 @@ const toggleSidebar = () => {
   background: rgba(0, 0, 0, 0.2);
 }
 
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 250;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .sidebar-header {
   padding: 1.5rem;
   border-bottom: 1px solid var(--border);
@@ -342,6 +380,7 @@ const toggleSidebar = () => {
   padding: 1.25rem 2rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
   box-shadow: var(--shadow-sm);
   position: sticky;
@@ -359,8 +398,11 @@ const toggleSidebar = () => {
 
 .menu-btn {
   display: none;
+  width: 52px;
+  height: 52px;
   background: none;
-  border: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--text-primary);
@@ -417,11 +459,16 @@ const toggleSidebar = () => {
 }
 
 @media (max-width: 768px) {
+  .sidebar-overlay {
+    display: block;
+  }
+
   .admin-sidebar {
-    width: 100%;
+    width: 280px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 300;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
   }
 
   .admin-sidebar.open {
@@ -441,7 +488,7 @@ const toggleSidebar = () => {
   }
 
   .admin-header {
-    padding: 1rem;
+    padding: 24px;
   }
 
   .admin-header h1 {
@@ -450,11 +497,12 @@ const toggleSidebar = () => {
 
   .main-content {
     padding: 1rem;
+    margin-left: 0;
   }
 
   .nav-link {
     padding: 0.875rem 1.5rem;
-    margin: 0;
+    margin: 0 0.5rem;
   }
 
   .nav-link:hover {
@@ -463,8 +511,17 @@ const toggleSidebar = () => {
 }
 
 @media (max-width: 480px) {
+  .admin-sidebar {
+    width: 85vw;
+    max-width: 300px;
+  }
+
   .sidebar-header h2 {
     font-size: 1.2rem;
+  }
+
+  .admin-header {
+    padding: 24px;
   }
 
   .admin-header h1 {
@@ -472,7 +529,11 @@ const toggleSidebar = () => {
   }
 
   .main-content {
-    padding: 0.75rem;
+    padding: 24px;
+  }
+
+  .nav-link {
+    padding: 0.75rem 1.25rem;
   }
 }
 </style>

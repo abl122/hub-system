@@ -210,17 +210,18 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .portal-dashboard {
-    padding: 1.25rem 0;
+    padding: 12px;
   }
 
   .portal-dashboard > * {
-    padding: 0 16px;
+    /* padding: 0 16px; */
   }
 
   .welcome-section {
     padding: 1.25rem;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
   }
 
   .card-header {
@@ -366,7 +367,8 @@ onMounted(() => {
 
   .welcome-section {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     padding: 1.5rem;
   }
 

@@ -274,7 +274,7 @@ onMounted(() => {
     <div class="page-header">
       <div>
         <h1>💳 EFI (Gerencianet)</h1>
-        <p class="subtitle">Integração EFI para processamento de pagamentos</p>
+        <p class="subtitle">Integração EFI para pagamentos</p>
       </div>
     </div>
 
@@ -403,7 +403,7 @@ onMounted(() => {
 
 <style scoped>
 .admin-efi {
-  padding: 2rem;
+  /* padding: 2rem; */
   padding-left: 0;
   /* background: #f5f5f5; */
   min-height: 100vh;
@@ -414,19 +414,19 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   /* margin-bottom: 2rem; */
-  margin-top: 2rem;
+  /* margin-top: 2rem; */
   gap: 2rem;
 }
 
 .page-header h1 {
-  margin: 0 0 0.5rem;
+  margin: 24px 0 0.5rem;
   font-size: 1.5rem;
   color: #1f2937;
   text-align: left;
 }
 
 .subtitle {
-  margin: 0;
+  margin: 0 0 1.5rem;
   color: #6b7280;
   font-size: 1rem;
   text-align: left;
@@ -448,7 +448,7 @@ onMounted(() => {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 1.5rem;
+  padding: 12px;
   max-width: 1200px;
 }
 
@@ -481,7 +481,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  align-self: end;
+  width: 100%;
 }
 
 .cert-status label {
@@ -512,11 +512,16 @@ onMounted(() => {
 }
 
 .status-chip {
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
   font-size: 0.85rem;
   border: 1px solid transparent;
   white-space: nowrap;
+  text-align: center;
 }
 
 .status-chip.ok {
@@ -608,6 +613,16 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+@media (max-width: 768px) {
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
 .btn-primary {
   background: #0284c7;
   color: white;
@@ -652,5 +667,160 @@ onMounted(() => {
   background: #fee2e2;
   color: #991b1b;
   border: 1px solid #fca5a5;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .admin-efi h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .content {
+    /* padding: 1.5rem 1rem; */
+  }
+
+  .section {
+    padding: 1.5rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .env-select-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin-bottom: 1rem;
+  }
+
+  .env-select-row .form-group {
+    margin-bottom: 0;
+  }
+
+  .cert-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .upload-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .upload-row button {
+    width: 100%;
+  }
+
+  .upload-row .file-name {
+    width: 100%;
+    text-align: center;
+  }
+
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .button-group .btn {
+    width: 100%;
+  }
+
+  .credentials-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .input-field {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  .btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-efi h1 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    margin-top: 24px;
+  }
+
+  .content {
+    /* padding: 1rem 12px; */
+  }
+
+  .section {
+    padding: 1rem 12px;
+    margin-bottom: 1rem;
+  }
+
+  .section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .env-select-row {
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .upload-row {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .upload-row button {
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .button-group {
+    gap: 0.5rem;
+  }
+
+  .button-group .btn {
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .input-field {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .message {
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
 }
 </style>

@@ -501,7 +501,7 @@ const handleKeypress = (e: KeyboardEvent) => {
 .login-container {
   width: 100%;
   max-width: 450px;
-  padding: 20px;
+  padding: 24px;
 }
 
 .login-card {

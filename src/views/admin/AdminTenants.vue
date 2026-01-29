@@ -201,6 +201,40 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
+
+      <!-- Cards para mobile -->
+      <div v-if="!loading" class="providers-grid">
+        <div v-for="tenant in filteredTenants" :key="tenant._id" class="provider-card">
+          <div class="card-header">
+            <h3>{{ tenant.provedor.nome }}</h3>
+            <span class="badge" :class="{ 'badge-active': tenant.assinatura.ativa }">
+              {{ tenant.assinatura.ativa ? 'Ativo' : 'Inativo' }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <span class="card-label">Email:</span>
+              <span class="card-value">{{ tenant.provedor.email }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">CNPJ:</span>
+              <span class="card-value">{{ tenant.provedor.cnpj }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Plano:</span>
+              <span class="card-value">{{ tenant.assinatura.plano }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-icon btn-icon-edit" @click="handleEdit(tenant._id)" title="Editar">
+              ✏️
+            </button>
+            <button class="btn-icon btn-icon-delete" @click="handleDelete(tenant._id)" title="Remover">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-if="filteredTenants.length === 0 && !loading" class="empty-state">
@@ -241,8 +275,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  margin-top: 2rem;
+  /* margin-bottom: 1.5rem; */
+  margin-top: 12px;
   gap: 1.5rem;
   max-width: 1200px;
 }
@@ -524,6 +558,10 @@ onMounted(() => {
 }
 
 /* ===== RESPONSIVE ===== */
+.providers-grid {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .filters {
     flex-direction: column;
@@ -563,22 +601,81 @@ onMounted(() => {
   }
 
   .tenants-table {
-    font-size: 0.85rem;
+    display: none;
   }
 
-  .tenants-table th,
-  .tenants-table td {
-    padding: 0.75rem 0.5rem;
+  .providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
   }
 
-  .tenants-table th {
-    font-size: 0.75rem;
+  .provider-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
   }
 
-  .btn-icon {
-    width: 34px;
-    height: 34px;
+  .provider-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+  }
+
+  .card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-label {
+    font-weight: 600;
+    color: var(--text-light);
     font-size: 0.9rem;
+  }
+
+  .card-value {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  .card-actions .btn-icon {
+    flex: 1;
+    justify-content: center;
   }
 
   .badge {
@@ -593,20 +690,42 @@ onMounted(() => {
     margin-bottom: 1.5rem;
   }
 
-  .tenants-table th {
-    font-size: 0.7rem;
-    padding: 0.5rem 0.25rem;
+  .providers-grid {
+    grid-template-columns: 1fr;
   }
 
-  .tenants-table td {
-    padding: 0.5rem 0.25rem;
+  .provider-card {
+    padding: 1rem;
+  }
+
+  .card-header {
+    padding-bottom: 0.75rem;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+  }
+
+  .card-body {
+    gap: 0.5rem;
+  }
+
+  .card-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .card-label {
     font-size: 0.8rem;
   }
 
-  .btn-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.85rem;
+  .card-value {
+    font-size: 0.9rem;
+  }
+
+  .card-actions {
+    padding-top: 0.75rem;
   }
 
   .pagination {

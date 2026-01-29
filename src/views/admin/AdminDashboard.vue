@@ -231,8 +231,10 @@ onMounted(() => {
 }
 
 .container {
+  width: 100%;
   max-width: 1200px;
-  /* padding: 0 24px; */
+  margin: 0 auto;
+  /* padding: 0 1rem; */
 }
 
 .admin-dashboard h2 {
@@ -338,7 +340,7 @@ onMounted(() => {
 /* ===== DASHBOARD CARDS ===== */
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
 }
 
@@ -559,11 +561,15 @@ onMounted(() => {
   }
 
   .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 1.5rem 0;
+  }
+
   .admin-dashboard h2 {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
@@ -572,6 +578,7 @@ onMounted(() => {
   .stats-grid {
     gap: 1rem;
     margin-bottom: 1.75rem;
+    grid-template-columns: 1fr;
   }
 
   .stat-card {
@@ -581,10 +588,15 @@ onMounted(() => {
 
   .stat-icon {
     font-size: 2rem;
+    min-width: 45px;
   }
 
   .stat-value {
     font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
   }
 
   .dashboard-cards {
@@ -595,26 +607,131 @@ onMounted(() => {
     padding: 1.25rem;
   }
 
+  .card h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .activity-item {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+  }
+
+  .activity-item .time {
+    min-width: auto;
+    font-size: 0.8rem;
+  }
+
+  .activity-item .text {
+    font-size: 0.85rem;
+  }
+
   .health-info {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .health-item {
+    padding: 0.875rem;
+  }
+
+  .badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .alert-item {
+    padding: 0.875rem;
+  }
+
+  .alert-header {
+    gap: 0.5rem;
+  }
+
+  .alert-title {
+    font-size: 0.9rem;
+  }
+
+  .alert-description {
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
+  .admin-dashboard {
+    padding: 1rem 0;
+  }
+
   .admin-dashboard h2 {
     font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .stat-card {
-    flex-direction: column;
+    padding: 1rem;
+    gap: 0.875rem;
   }
 
-  .stat-info {
-    width: 100%;
+  .stat-icon {
+    font-size: 1.75rem;
+    min-width: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.35rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .dashboard-cards {
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .card h3 {
+    font-size: 0.95rem;
+  }
+
+  .health-info {
+    gap: 0.5rem;
+  }
+
+  .health-item {
+    padding: 0.75rem;
+  }
+
+  .health-item .label {
+    font-size: 0.75rem;
+  }
+
+  .badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .alert-icon {
+    font-size: 1rem;
+  }
+
+  .alert-title {
+    font-size: 0.85rem;
+  }
+
+  .alert-count {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
   }
 }
 </style>

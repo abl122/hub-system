@@ -249,7 +249,6 @@ onMounted(() => {
           <a href="#features" class="nav-link">Recursos</a>
           <a href="#pricing" class="nav-link">Preços</a>
           <button @click="goToPortal" class="btn btn-secondary">Portal</button>
-          <button @click="goToAdmin" class="btn btn-primary">Admin</button>
         </nav>
       </div>
     </header>
@@ -621,9 +620,10 @@ onMounted(() => {
 }
 
 .container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  /* padding: 0 12px; */
 }
 
 /* Header */
@@ -639,19 +639,29 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 20px;
+  padding: 1rem 0.75rem;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .logo h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   color: #667eea;
   margin: 0;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .nav-link {
@@ -659,6 +669,8 @@ onMounted(() => {
   color: #333;
   font-weight: 500;
   transition: color 0.3s;
+  white-space: nowrap;
+  display: none;
 }
 
 .nav-link:hover {
@@ -667,7 +679,7 @@ onMounted(() => {
 
 /* Buttons */
 .btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1.5rem;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
@@ -716,7 +728,7 @@ onMounted(() => {
 
 /* Hero */
 .hero {
-  padding: 6rem 20px;
+  padding: 2.5rem 0.75rem;
   color: white;
   text-align: center;
 }
@@ -730,7 +742,7 @@ onMounted(() => {
 
 .hero p {
   font-size: 1.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   opacity: 0.95;
 }
 
@@ -743,7 +755,7 @@ onMounted(() => {
 
 /* Features */
 .features {
-  padding: 5rem 20px;
+  padding: 3rem 0.75rem;
   background: white;
 }
 
@@ -791,7 +803,7 @@ onMounted(() => {
 
 /* Pricing */
 .pricing {
-  padding: 5rem 20px;
+  padding: 3rem 0.75rem;
   background: #f5f5f5;
 }
 
@@ -949,8 +961,13 @@ onMounted(() => {
 .footer {
   background: rgba(0, 0, 0, 0.1);
   color: white;
-  padding: 2rem 20px;
+  padding: 1.5rem 0.75rem;
   text-align: center;
+}
+
+.footer p {
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 /* Registration Section (Modal Flutuante) */
@@ -965,7 +982,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 2rem;
+  padding: 0.75rem;
   overflow-y: auto;
   animation: fadeIn 0.3s ease;
   backdrop-filter: blur(2px);
@@ -989,6 +1006,8 @@ onMounted(() => {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   border: 2px solid #e5e7eb;
   animation: slideUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .steps {
@@ -1292,20 +1311,57 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .header .container {
+    flex-wrap: nowrap;
+    padding: 20px 24px;
+    gap: 0.5rem;
+  }
+
   .nav {
-    gap: 1rem;
-  }
-
-  .hero h2 {
-    font-size: 2rem;
-  }
-
-  .hero p {
-    font-size: 1.1rem;
+    gap: 0;
+    margin-left: auto;
   }
 
   .nav-link {
     display: none;
+  }
+
+  .nav .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .hero {
+    padding: 3rem 1rem;
+  }
+
+  .hero h2 {
+    font-size: 1.75rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .nav-link {
+    display: none;
+  }
+
+  .features,
+  .pricing {
+    padding: 3rem 1rem;
+  }
+
+  .features h2,
+  .pricing h2 {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .pricing-card.featured {
@@ -1314,6 +1370,7 @@ onMounted(() => {
 
   .pricing-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .btn-lg {
@@ -1322,6 +1379,133 @@ onMounted(() => {
 
   .hero-buttons {
     flex-direction: column;
+  }
+
+  .registration-section {
+    padding: 1rem;
+    align-items: flex-start;
+  }
+
+  .registration-container {
+    padding: 1.5rem;
+    border-radius: 8px;
+    max-height: 95vh;
+  }
+
+  .registration-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .registration-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .plan-summary {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .plan-value {
+    font-size: 1.5rem;
+  }
+
+  .steps {
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .step {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .step .step-number {
+    width: 22px;
+    height: 22px;
+    font-size: 0.85rem;
+  }
+
+  .payment-badges {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .nav-link {
+    display: inline-block;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .hero h2 {
+    font-size: 1.5rem;
+  }
+
+  .hero p {
+    font-size: 0.95rem;
+  }
+
+  .features h2,
+  .pricing h2 {
+    font-size: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 12px;
+  }
+
+  .feature-card .icon {
+    font-size: 2.5rem;
+  }
+
+  .pricing-card {
+    padding: 1.5rem;
+  }
+
+  .pricing-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .pricing-card .price {
+    font-size: 2.5rem;
+  }
+
+  .registration-container {
+    padding: 12px;
+  }
+
+  .registration-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .form-section-title {
+    font-size: 1rem;
+  }
+
+  .input-field {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .portal-dashboard > * {
+    /* padding: 0 16px; */
   }
 }
 </style>

@@ -147,7 +147,7 @@ onMounted(() => {
     <div class="page-header">
       <div>
         <h1>📧 Email (SMTP)</h1>
-        <p class="subtitle">Integração SMTP para envio de emails automáticos</p>
+        <p class="subtitle">Integração SMTP para emails</p>
       </div>
     </div>
 
@@ -259,7 +259,7 @@ onMounted(() => {
 
 <style scoped>
 .admin-email {
-  padding: 2rem;
+  /* padding: 2rem; */
   padding-left: 0;
   /* background: #f5f5f5; */
   min-height: 100vh;
@@ -275,14 +275,14 @@ onMounted(() => {
 }
 
 .page-header h1 {
-  margin: 0 0 0.5rem;
+  /* margin: 24px 0 0.5rem; */
   font-size: 1.5rem;
   color: #1f2937;
   text-align: left;
 }
 
 .subtitle {
-  margin: 0;
+  margin: 0 0 1.5rem;
   color: #6b7280;
   font-size: 1rem;
   text-align: left;
@@ -304,7 +304,7 @@ onMounted(() => {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 1.5rem;
+  padding: 12px;
   max-width: 1200px;
 }
 
@@ -368,6 +368,16 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
 }
 
 .btn-primary {

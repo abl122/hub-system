@@ -6,7 +6,7 @@ import { ref, computed } from 'vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const sidebarOpen = ref(true)
+const sidebarOpen = ref(window.innerWidth >= 768)
 
 const isLoggedIn = computed(() => authStore.isPortalAuthenticated)
 const isLoginRoute = computed(() => route.name === 'portal-login')
@@ -274,12 +274,30 @@ const toggleSidebar = () => {
     display: block;
   }
 
+  .header-content {
+    padding: 1rem;
+  }
+
+  .logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .user-menu {
+    font-size: 0.9rem;
+  }
+
+  .btn-logout {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
   .portal-sidebar {
     position: fixed;
     left: 0;
     top: 73px;
     z-index: 90;
     transform: translateX(0);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
   }
 
   .portal-sidebar.collapsed {
@@ -289,6 +307,41 @@ const toggleSidebar = () => {
 
   .portal-main {
     width: 100%;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 24px;
+  }
+
+  .logo h1 {
+    font-size: 1.1rem;
+  }
+
+  .user-menu {
+    /* flex-direction: column; */
+    align-items: flex-end;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .btn-logout {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .portal-main {
+    padding: 12px;
+  }
+
+  .nav-link {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .nav-icon {
+    font-size: 1.35rem;
   }
 }
 </style>
