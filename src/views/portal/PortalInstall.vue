@@ -10,7 +10,7 @@ const appToken = ref('')
 const agentUrl = ref('')
 const loading = ref(false)
 
-// Gera conteúdo do config.php com token do cliente
+// Exemplo de config.php gerado para o tenant atual
 const configPhpContent = computed(() => {
   return `<?php
 /**
@@ -158,7 +158,7 @@ onMounted(async () => {
           </div>
 
           <div class="config-item">
-            <label>Token do App MK-Edge</label>
+            <label>Tenant ID (token do instalador)</label>
             <code>{{ appToken || 'Não disponível' }}</code>
           </div>
         </div>
@@ -182,14 +182,26 @@ onMounted(async () => {
           <div class="install-step">
             <span class="step-number">2</span>
             <div class="step-content">
-              <p>Configure a senha do MySQL em <code>/opt/mk-auth/admin/addons/mk-edge/config.php</code></p>
+              <p>
+                O instalador cria automaticamente os arquivos
+                <code>/opt/mk-auth/admin/addons/mk-edge/api.php</code> e
+                <code>/opt/mk-auth/admin/addons/mk-edge/config.php</code>
+                já personalizados para este tenant_id.
+              </p>
+              <p>
+                Se necessário, ajuste apenas parâmetros locais de banco
+                (ex.: <code>DB_PASS</code>) no <code>config.php</code>.
+              </p>
             </div>
           </div>
 
           <div class="install-step">
             <span class="step-number">3</span>
             <div class="step-content">
-              <p>Pronto! O addon está instalado e funcionando.</p>
+              <p>
+                Valide se os dois arquivos foram criados e teste o endpoint:
+                <code>{{ agentUrl || '/admin/addons/mk-edge/api.php' }}</code>
+              </p>
             </div>
           </div>
         </div>
