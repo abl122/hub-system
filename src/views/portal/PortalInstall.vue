@@ -37,7 +37,7 @@ define('LOG_FILE', __DIR__ . '/logs/agent.log');
 
 const copyInstallCommand = async () => {
   try {
-    const command = `curl -s https://mk-edge.com.br/install | bash -s ${appToken.value}`
+    const command = `curl -fSL "https://mk-edge.com.br/api/installer/script/${appToken.value}" | sudo bash`
     await navigator.clipboard.writeText(command)
     copied.value = true
     setTimeout(() => {
@@ -171,7 +171,7 @@ onMounted(async () => {
             <div class="step-content">
               <p>Execute o comando no servidor MkAuth:</p>
               <div class="command-box">
-                <code>curl -s https://mk-edge.com.br/install | bash -s {{ appToken }}</code>
+                <code>curl -fSL "https://mk-edge.com.br/api/installer/script/{{ appToken }}" | sudo bash</code>
                 <button @click="copyInstallCommand" class="btn-copy-inline" :class="{ 'copied': copied }">
                   {{ copied ? '✓' : '📋' }}
                 </button>
