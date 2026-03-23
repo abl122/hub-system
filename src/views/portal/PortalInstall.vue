@@ -9,6 +9,19 @@ const addonToken = ref('')
 const appToken = ref('')
 const agentUrl = ref('')
 const loading = ref(false)
+const installerBaseUrl = (import.meta.env.VITE_PUBLIC_URL || 'https://mk-edge.com.br').replace(/\/$/, '')
+const installerInternalIp = (import.meta.env.VITE_INSTALLER_INTERNAL_IP || '').trim()
+const installerHostname = new URL(installerBaseUrl).hostname
+
+const installCommand = computed(() => {
+  const scriptUrl = `${installerBaseUrl}/api/installer/script/${appToken.value}`
+
+  if (installerInternalIp) {
+    return `curl -fSL --resolve ${installerHostname}:443:${installerInternalIp} "${scriptUrl}" | sudo bash`
+  }
+
+  return `curl -fSL "${scriptUrl}" | sudo bash`
+})
 
 // Exemplo de config.php gerado para o tenant atual
 const configPhpContent = computed(() => {
@@ -37,8 +50,7 @@ define('LOG_FILE', __DIR__ . '/logs/agent.log');
 
 const copyInstallCommand = async () => {
   try {
-    const command = `curl -fSL "https://mk-edge.com.br/api/installer/script/${appToken.value}" | sudo bash`
-    await navigator.clipboard.writeText(command)
+    await navigator.clipboard.writeText(installCommand.value)
     copied.value = true
     setTimeout(() => {
       copied.value = false
@@ -171,11 +183,14 @@ onMounted(async () => {
             <div class="step-content">
               <p>Execute o comando no servidor MkAuth:</p>
               <div class="command-box">
-                <code>curl -fSL "https://mk-edge.com.br/api/installer/script/{{ appToken }}" | sudo bash</code>
+                <code>{{ installCommand }}</code>
                 <button @click="copyInstallCommand" class="btn-copy-inline" :class="{ 'copied': copied }">
                   {{ copied ? '✓' : '📋' }}
                 </button>
               </div>
+              <p v-if="installerInternalIp" class="command-hint">
+                Este comando usa a rota interna {{ installerInternalIp }} para evitar falha de acesso ao IP p\u00fablico a partir do MkAuth.
+              </p>
             </div>
           </div>
 
