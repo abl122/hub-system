@@ -328,8 +328,37 @@ const formatPhone = (event: Event) => {
   formData.value.provedor.telefone = value
 }
 
+const normalizeHexColor = (rawValue: string): string => {
+  const sanitized = String(rawValue || '').trim().replace(/^#/, '')
+
+  if (/^[0-9a-fA-F]{3}$/.test(sanitized)) {
+    const expanded = sanitized
+      .split('')
+      .map((c) => c + c)
+      .join('')
+      .toUpperCase()
+    return `#${expanded}`
+  }
+
+  if (/^[0-9a-fA-F]{6}$/.test(sanitized)) {
+    return `#${sanitized.toUpperCase()}`
+  }
+
+  return '#2563EB'
+}
+
+const applyPrimaryColorHex = () => {
+  const normalized = normalizeHexColor(formData.value.provedor.cores?.primaria || '')
+  if (!formData.value.provedor.cores) {
+    formData.value.provedor.cores = {}
+  }
+  formData.value.provedor.cores.primaria = normalized
+}
+
 const handleSubmit = async () => {
   if (!validateForm()) return
+
+  applyPrimaryColorHex()
 
   isLoading.value = true
 
@@ -668,8 +697,17 @@ const handleClose = () => {
                 />
                 <span>{{ formData.provedor.cores?.primaria || '#2563eb' }}</span>
               </div>
+              <input
+                id="cor-primaria-hex"
+                v-model="formData.provedor.cores.primaria"
+                type="text"
+                class="form-input"
+                placeholder="#2563EB"
+                maxlength="7"
+                @blur="applyPrimaryColorHex"
+              />
               <small class="form-hint">
-                Cor principal usada no app do cliente para este provedor.
+                Você pode selecionar no color picker ou digitar o HEX (ex: #2563EB).
               </small>
             </div>
           </div>
