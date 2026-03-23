@@ -6,6 +6,10 @@ interface ProviderInfo {
   email: string
   telefone: string
   dominio: string
+  logo?: string
+  cores?: {
+    primaria?: string
+  }
 }
 
 interface SubscriptionInfo {

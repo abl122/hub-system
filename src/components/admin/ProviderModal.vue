@@ -12,6 +12,10 @@ export interface Provider {
     email: string
     telefone: string
     dominio: string
+    logo?: string
+    cores?: {
+      primaria?: string
+    }
     admin_name?: string
     ativo?: boolean
   }
@@ -63,6 +67,10 @@ const formData = ref<Provider>({
     email: '',
     telefone: '',
     dominio: '',
+    logo: '',
+    cores: {
+      primaria: '#2563eb'
+    },
     ativo: true
   },
   plano_atual: '',
@@ -95,7 +103,15 @@ const loadPlanos = async () => {
   }
 }
 
-// Watch para atualizar URL do agente quando domínio mudar
+const cleanDomainInput = (domain: string): string => domain.trim().replace(/\/$/, '')
+
+const buildLogoUrlFromDomain = (domain: string): string => {
+  const base = cleanDomainInput(domain)
+  if (!base) return ''
+  return `${base}/mkfiles/logo.jpg`
+}
+
+// Watch para atualizar URL do agente e logo quando domínio mudar
 watch(
   () => formData.value.provedor.dominio,
   (newDominio) => {
@@ -103,10 +119,11 @@ watch(
     if (!domain) return
     
     // Remove apenas barra final se houver
-    const cleanDomain = domain.replace(/\/$/, '')
+    const cleanDomain = cleanDomainInput(domain)
     
     // Gera URL do agente mantendo exatamente o que foi digitado (com ou sem protocolo)
     formData.value.agente.url = `${cleanDomain}/admin/addons/mk-edge/api.php`
+    formData.value.provedor.logo = buildLogoUrlFromDomain(cleanDomain)
   }
 )
 
@@ -130,6 +147,10 @@ watch(
             email: props.provider.provedor?.email || '',
             telefone: props.provider.provedor?.telefone || '',
             dominio: props.provider.provedor?.dominio || '',
+            logo: props.provider.provedor?.logo || '',
+            cores: {
+              primaria: props.provider.provedor?.cores?.primaria || '#2563eb'
+            },
             admin_name: props.provider.provedor?.admin_name || '',
             ativo: props.provider.provedor?.ativo ?? true
           },
@@ -151,6 +172,9 @@ watch(
         if (formData.value.provedor.dominio) {
           const cleanedDomain = cleanDomain(formData.value.provedor.dominio)
           formData.value.provedor.dominio = cleanedDomain
+          if (!formData.value.provedor.logo) {
+            formData.value.provedor.logo = buildLogoUrlFromDomain(cleanedDomain)
+          }
         }
         
         // Se ainda não tiver domínio, tentar extrair da URL do agente
@@ -158,6 +182,7 @@ watch(
           const urlMatch = formData.value.agente.url.match(/https?:\/\/(provedor\.)?([^/]+)/)
           if (urlMatch) {
             formData.value.provedor.dominio = urlMatch[2]
+            formData.value.provedor.logo = buildLogoUrlFromDomain(urlMatch[2])
           }
         }
         
@@ -215,6 +240,10 @@ const resetForm = () => {
       email: '',
       telefone: '',
       dominio: '',
+      logo: '',
+      cores: {
+        primaria: '#2563eb'
+      },
       admin_name: '',
       ativo: true
     },
@@ -312,6 +341,7 @@ const handleSubmit = async () => {
 
     if (isEditing.value && props.provider?._id) {
       // Update
+      const cleanedDomain = cleanDomainForSave(formData.value.provedor.dominio)
       const updateData: any = {
         provedor: {
           nome: formData.value.provedor.nome,
@@ -319,7 +349,11 @@ const handleSubmit = async () => {
           cnpj: formData.value.provedor.cnpj,
           email: formData.value.provedor.email,
           telefone: formData.value.provedor.telefone,
-          dominio: cleanDomainForSave(formData.value.provedor.dominio),
+          dominio: cleanedDomain,
+          logo: buildLogoUrlFromDomain(cleanedDomain),
+          cores: {
+            primaria: formData.value.provedor.cores?.primaria || '#2563eb'
+          },
           admin_name: formData.value.provedor.admin_name,
           ativo: formData.value.provedor.ativo ?? true
         },
@@ -352,6 +386,7 @@ const handleSubmit = async () => {
       }
     } else {
       // Create
+      const cleanedDomain = cleanDomainForSave(formData.value.provedor.dominio)
       const createData: any = {
         provedor: {
           nome: formData.value.provedor.nome,
@@ -359,7 +394,11 @@ const handleSubmit = async () => {
           cnpj: formData.value.provedor.cnpj,
           email: formData.value.provedor.email,
           telefone: formData.value.provedor.telefone,
-          dominio: cleanDomainForSave(formData.value.provedor.dominio),
+          dominio: cleanedDomain,
+          logo: buildLogoUrlFromDomain(cleanedDomain),
+          cores: {
+            primaria: formData.value.provedor.cores?.primaria || '#2563eb'
+          },
           admin_name: formData.value.provedor.admin_name,
           ativo: true // Sempre ativo na criação
         },
@@ -598,6 +637,39 @@ const handleClose = () => {
               />
               <small class="form-hint">
                 Digite o domínio completo com https:// - será usado para gerar a URL do agente
+              </small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="provedor-logo">URL da Logo</label>
+              <input
+                id="provedor-logo"
+                :value="formData.provedor.logo"
+                type="text"
+                class="form-input"
+                readonly
+                style="background-color: #f3f4f6;"
+              />
+              <small class="form-hint">
+                Gerada automaticamente no formato domínio/mkfiles/logo.jpg.
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="cor-primaria">Cor Primária</label>
+              <div class="color-input-wrapper">
+                <input
+                  id="cor-primaria"
+                  v-model="formData.provedor.cores.primaria"
+                  type="color"
+                  class="form-color-input"
+                />
+                <span>{{ formData.provedor.cores?.primaria || '#2563eb' }}</span>
+              </div>
+              <small class="form-hint">
+                Cor principal usada no app do cliente para este provedor.
               </small>
             </div>
           </div>
