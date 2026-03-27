@@ -13,6 +13,7 @@ export interface RegisterData {
   admin_email: string
   admin_telefone?: string
   senha: string
+  plan_id?: string
   plan_slug: string
 }
 

@@ -164,6 +164,7 @@ const handleRegister = async () => {
       admin_email: formData.value.admin_email,
       admin_telefone: formData.value.admin_telefone,
       senha: formData.value.senha,
+      plan_id: selectedPlan.value._id,
       plan_slug: selectedPlan.value.slug
     })
 
