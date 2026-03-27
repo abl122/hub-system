@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { tenantsService } from '@/services/tenantsService'
 import { plansService } from '@/services/plansService'
 import SubscriptionModal from '@/components/admin/SubscriptionModal.vue'
+import { resolvePlanSlug } from '@/utils/planSlug'
 
 interface Tenant {
   _id: string
@@ -25,7 +26,7 @@ interface AvailablePlan {
   _id: string
   nome: string
   slug: string
-  valor: number
+  valor_mensal: number
   periodo: string
 }
 
@@ -142,7 +143,9 @@ const formatDate = (dateString: string | undefined): string => {
 }
 
 const getPlanValue = (planoSlug: string): number => {
-  const plan = allPlans.value.find(p => p.slug === planoSlug)
+  const availableSlugs = allPlans.value.map((plan) => plan.slug)
+  const resolvedSlug = resolvePlanSlug(planoSlug, availableSlugs)
+  const plan = allPlans.value.find(p => p.slug === resolvedSlug)
   return plan?.valor_mensal || 0
 }
 

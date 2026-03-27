@@ -2,6 +2,7 @@
 import { ref, watch, computed, nextTick } from 'vue'
 import { tenantsService } from '@/services/tenantsService'
 import { plansService } from '@/services/plansService'
+import { resolvePlanSlug } from '@/utils/planSlug'
 
 export interface Provider {
   _id?: string
@@ -104,6 +105,11 @@ const loadPlanos = async () => {
   }
 }
 
+const normalizeProviderPlanSlug = (slug: string): string => {
+  const availableSlugs = planos.value.map((plan) => plan.slug)
+  return resolvePlanSlug(slug, availableSlugs)
+}
+
 const cleanDomainInput = (domain: string): string => domain.trim().replace(/\/$/, '')
 
 const buildLogoUrlFromDomain = (domain: string): string => {
@@ -155,7 +161,7 @@ watch(
             admin_name: props.provider.provedor?.admin_name || '',
             ativo: props.provider.provedor?.ativo ?? true
           },
-          plano_atual: props.provider.plano_atual || '',
+          plano_atual: normalizeProviderPlanSlug(props.provider.plano_atual || ''),
           senha_portal: '',
           agente: {
             url: props.provider.agente?.url || '',
@@ -292,6 +298,11 @@ const validateForm = (): boolean => {
     return false
   }
 
+  if (!normalizeProviderPlanSlug(formData.value.plano_atual)) {
+    errorMessage.value = 'Selecione um plano válido'
+    return false
+  }
+
   return true
 }
 
@@ -387,7 +398,7 @@ const handleSubmit = async () => {
           admin_name: formData.value.provedor.admin_name,
           ativo: formData.value.provedor.ativo ?? true
         },
-        plano_atual: formData.value.plano_atual,
+        plano_atual: normalizeProviderPlanSlug(formData.value.plano_atual),
         agente: formData.value.agente
       }
 
@@ -432,7 +443,7 @@ const handleSubmit = async () => {
           admin_name: formData.value.provedor.admin_name,
           ativo: true // Sempre ativo na criação
         },
-        plano_atual: formData.value.plano_atual, // Usa o plano selecionado
+        plano_atual: normalizeProviderPlanSlug(formData.value.plano_atual), // Usa o plano selecionado
         agente: formData.value.agente || {
           url: '',
           token: '',

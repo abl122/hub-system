@@ -55,7 +55,7 @@ interface UpdatePlanRequest {
   nome?: string
   slug?: string
   descricao?: string
-  valor?: number
+  valor_mensal?: number
   periodo?: string
   recorrente?: boolean
   limite_clientes?: number | null

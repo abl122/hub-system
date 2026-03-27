@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { plansService } from '@/services/plansService'
+import { normalizePlanSlug } from '@/utils/planSlug'
 
 export interface Plan {
   _id?: string
@@ -59,7 +60,10 @@ watch(
   () => props.isOpen,
   (newVal) => {
     if (newVal && props.plan) {
-      formData.value = { ...props.plan }
+      formData.value = {
+        ...props.plan,
+        slug: normalizePlanSlug(props.plan.slug)
+      }
     } else if (newVal) {
       resetForm()
     }
@@ -92,6 +96,8 @@ const validateForm = (): boolean => {
     errorMessage.value = 'Nome do plano é obrigatório'
     return false
   }
+
+  formData.value.slug = normalizePlanSlug(formData.value.slug)
 
   if (!formData.value.slug?.trim()) {
     errorMessage.value = 'Slug é obrigatório'
@@ -134,9 +140,11 @@ const handleSubmit = async () => {
         props.plan._id,
         {
           nome: formData.value.nome,
+          slug: formData.value.slug,
           descricao: formData.value.descricao,
           valor_mensal: formData.value.valor_mensal,
           periodo: formData.value.periodo,
+          recorrente: formData.value.recorrente,
           limite_clientes: formData.value.limite_clientes,
           recursos: formData.value.recursos,
           destaque: formData.value.destaque,
@@ -229,9 +237,8 @@ const handleClose = () => {
               id="slug"
               v-model="formData.slug"
               type="text"
-              placeholder="Ex: profissional (sem espaços)"
+              placeholder="Ex: plano-mensal (sem espaços)"
               class="form-input"
-              :disabled="isEditing"
             />
           </div>
 

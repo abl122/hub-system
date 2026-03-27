@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { tenantsService } from '@/services/tenantsService'
 import { plansService } from '@/services/plansService'
+import { resolvePlanSlug } from '@/utils/planSlug'
 
 export interface Subscription {
   tenantId: string
@@ -20,7 +21,7 @@ interface AvailablePlan {
   _id: string
   nome: string
   slug: string
-  valor: number
+  valor_mensal: number
   periodo: string
 }
 
@@ -58,6 +59,11 @@ const formData = ref<Subscription>({
 
 const title = computed(() => 'Editar Assinatura')
 
+const normalizeSubscriptionPlanSlug = (slug: string): string => {
+  const availableSlugs = allPlans.value.map((plan) => plan.slug)
+  return resolvePlanSlug(slug, availableSlugs)
+}
+
 watch(
   () => props.isOpen,
   async (newVal) => {
@@ -77,10 +83,12 @@ watch(
       // Depois carrega os planos (agora tenantId já está definido)
       await loadPlans()
       
-      // Se o plano atual não existe na lista, seleciona o primeiro plano disponível
+      // Resolver slugs legados antes de aplicar fallback
       if (props.subscription) {
-        const planoExiste = allPlans.value.some(p => p.slug === formData.value.assinatura.plano)
-        if (!planoExiste && allPlans.value.length > 0) {
+        const resolvedSlug = normalizeSubscriptionPlanSlug(formData.value.assinatura.plano)
+        if (resolvedSlug) {
+          formData.value.assinatura.plano = resolvedSlug
+        } else if (allPlans.value.length > 0) {
           formData.value.assinatura.plano = allPlans.value[0].slug
         }
       }
@@ -115,6 +123,8 @@ const loadPlans = async () => {
 
 const validateForm = (): boolean => {
   errorMessage.value = ''
+
+  formData.value.assinatura.plano = normalizeSubscriptionPlanSlug(formData.value.assinatura.plano)
 
   if (!formData.value.assinatura.plano) {
     errorMessage.value = 'Plano é obrigatório'
@@ -156,7 +166,7 @@ const handleSubmit = async () => {
 
     const updateData = {
       assinatura: {
-        plano: formData.value.assinatura.plano,
+        plano: normalizeSubscriptionPlanSlug(formData.value.assinatura.plano),
         ativa: formData.value.assinatura.ativa,
         valor_mensal: getCurrentPlanValue.value,
         data_inicio,
@@ -204,7 +214,8 @@ const formatDateForInput = (dateString: string | undefined): string => {
 }
 
 const getCurrentPlan = () => {
-  return allPlans.value.find(p => p.slug === formData.value.assinatura.plano)
+  const resolvedSlug = normalizeSubscriptionPlanSlug(formData.value.assinatura.plano)
+  return allPlans.value.find(p => p.slug === resolvedSlug)
 }
 
 const isVitalicioPlano = computed(() => {
