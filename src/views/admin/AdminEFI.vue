@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { efiService } from '@/services/efiService'
+import { efiService, type ProviderPaymentRecord } from '@/services/efiService'
 
 type EnvironmentKey = 'homologacao' | 'producao'
 
@@ -29,6 +29,8 @@ const message = ref({ type: '', text: '' })
 const fileInput = ref<HTMLInputElement | null>(null)
 const pendingFile = ref<File | null>(null)
 const pendingFileName = ref('')
+const loadingPayments = ref(false)
+const payments = ref<ProviderPaymentRecord[]>([])
 
 const config = ref<EFIConfig>({
   sandbox: true,
@@ -90,6 +92,34 @@ watch(selectedEnv, (val) => {
   pendingFile.value = null
   pendingFileName.value = ''
 })
+
+const formatCurrency = (value: number) => {
+  return Number(value || 0).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  })
+}
+
+const formatDateTime = (value?: string) => {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  return date.toLocaleString('pt-BR')
+}
+
+const loadProviderPayments = async () => {
+  loadingPayments.value = true
+  try {
+    if (!authStore.adminToken) throw new Error('Token admin ausente')
+    const response = await efiService.getProviderPayments(authStore.adminToken, 100)
+    payments.value = response?.payments || []
+  } catch (error) {
+    console.warn('Falha ao carregar pagamentos dos provedores', error)
+    payments.value = []
+  } finally {
+    loadingPayments.value = false
+  }
+}
 
 const loadConfig = async () => {
   loading.value = true
@@ -266,6 +296,7 @@ const handleUpload = async () => {
 
 onMounted(() => {
   loadConfig()
+  loadProviderPayments()
 })
 </script>
 
@@ -395,6 +426,53 @@ onMounted(() => {
             <span v-if="!testing">🧪 Testar Conexão</span>
             <span v-else>Testando...</span>
           </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="payments-header">
+          <h2>📒 Registros de Pagamentos dos Provedores</h2>
+          <button
+            type="button"
+            class="btn btn-light"
+            @click="loadProviderPayments"
+            :disabled="loadingPayments"
+          >
+            {{ loadingPayments ? 'Atualizando...' : 'Atualizar registros' }}
+          </button>
+        </div>
+
+        <div v-if="loadingPayments" class="loading">Carregando pagamentos...</div>
+
+        <div v-else-if="payments.length === 0" class="empty-payments">
+          Nenhum pagamento registrado até o momento.
+        </div>
+
+        <div v-else class="payments-table-wrapper">
+          <table class="payments-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Provedor</th>
+                <th>CNPJ</th>
+                <th>Plano</th>
+                <th>Método</th>
+                <th>Valor Pago</th>
+                <th>Fatura</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="payment in payments" :key="payment.invoice_id">
+                <td>{{ formatDateTime(payment.data_pagamento) }}</td>
+                <td>{{ payment.provedor_nome }}</td>
+                <td>{{ payment.provedor_cnpj || '-' }}</td>
+                <td>{{ payment.plan_name || payment.plan_slug || '-' }}</td>
+                <td>{{ payment.metodo }}</td>
+                <td>{{ formatCurrency(payment.valor_pago) }}</td>
+                <td>{{ payment.invoice_numero }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
@@ -602,6 +680,51 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
+.payments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.payments-header h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.payments-table-wrapper {
+  overflow-x: auto;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.payments-table th,
+.payments-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  text-align: left;
+  color: #1f2937;
+}
+
+.payments-table th {
+  font-weight: 600;
+  background: #f9fafb;
+}
+
+.empty-payments {
+  padding: 1rem;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  color: #6b7280;
+}
+
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -736,6 +859,15 @@ onMounted(() => {
   }
 
   .button-group .btn {
+    width: 100%;
+  }
+
+  .payments-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .payments-header .btn {
     width: 100%;
   }
 

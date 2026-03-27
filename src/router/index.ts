@@ -98,7 +98,7 @@ const routes: RouteRecordRaw[] = [
         path: 'efi',
         name: 'admin-efi',
         component: () => import('@/views/admin/AdminEFI.vue'),
-        meta: { title: 'Admin - EFI Pagamentos', requiresAuth: true }
+        meta: { title: 'Admin - EFI', requiresAuth: true }
       },
       {
         path: 'sms',

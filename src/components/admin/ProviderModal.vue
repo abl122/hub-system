@@ -51,6 +51,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const isLoading = ref(false)
+const isResettingPassword = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const planos = ref<Plan[]>([])
@@ -477,6 +478,34 @@ const handleSubmit = async () => {
   }
 }
 
+const handleGeneratePortalPassword = async () => {
+  if (!props.provider?._id) return
+
+  isResettingPassword.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await tenantsService.resetPortalPassword(
+      props.provider._id,
+      { generate: true },
+      props.adminToken
+    )
+
+    if (response.success && response.password) {
+      formData.value.senha_portal = response.password
+      showPassword.value = true
+      hasSenhaAtual.value = true
+      successMessage.value = 'Nova senha temporária gerada. Salve o provedor para manter essa senha.'
+    } else {
+      errorMessage.value = response.message || 'Não foi possível gerar a senha temporária'
+    }
+  } catch (err: any) {
+    errorMessage.value = err.message || 'Erro ao gerar senha temporária'
+  } finally {
+    isResettingPassword.value = false
+  }
+}
+
 const handleDelete = async () => {
   if (!props.provider?._id) return
   
@@ -647,7 +676,20 @@ const handleClose = () => {
               <small v-if="hasSenhaAtual" class="form-hint" style="color: #10b981; font-weight: 600;">
                 ✓ Senha do portal já cadastrada.
               </small>
-              <small v-else-if="isEditing" class="form-hint" style="color: #ff9800; font-weight: 600;">
+              <small v-if="isEditing" class="form-hint" style="color: #6b7280; margin-top: 6px; display: block;">
+                Por segurança, não é possível recuperar a senha atual em texto claro.
+              </small>
+              <button
+                v-if="isEditing"
+                type="button"
+                class="btn btn-secondary"
+                style="margin-top: 8px;"
+                :disabled="isLoading || isResettingPassword"
+                @click="handleGeneratePortalPassword"
+              >
+                {{ isResettingPassword ? 'Gerando senha...' : 'Gerar senha temporária e mostrar' }}
+              </button>
+              <small v-if="isEditing && !hasSenhaAtual" class="form-hint" style="color: #ff9800; font-weight: 600;">
                 ⚠️ Nenhuma senha cadastrada.
               </small>
               <small v-else class="form-hint">
@@ -737,6 +779,19 @@ const handleClose = () => {
             />
             <small class="form-hint">
               Token gerado automaticamente para autenticação do addon no servidor MK-Auth.
+            </small>
+          </div>
+
+          <div class="form-group checkbox">
+            <input
+              id="agente-ativo"
+              v-model="formData.agente.ativo"
+              type="checkbox"
+              class="form-checkbox"
+            />
+            <label for="agente-ativo">Agente Ativo</label>
+            <small class="form-hint">
+              Marque para permitir o uso do agente deste provedor. Desmarque para desativar a integração sem apagar URL e token.
             </small>
           </div>
         </div>

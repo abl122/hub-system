@@ -93,7 +93,7 @@ onMounted(() => {
           :class="{ active: $route.name === 'admin-efi' }"
         >
           <span class="icon">💳</span>
-          <span>EFI (Pagamentos)</span>
+          <span>EFI</span>
         </a>
         <a
           @click="navigateTo('admin-sms')"

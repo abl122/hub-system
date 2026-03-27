@@ -59,6 +59,29 @@ export interface EfiUploadResponse {
   }
 }
 
+export interface ProviderPaymentRecord {
+  invoice_id: string
+  invoice_numero: string
+  tenant_id: string
+  provedor_nome: string
+  provedor_cnpj: string
+  plan_name: string
+  plan_slug: string
+  valor_fatura: number
+  valor_pago: number
+  metodo: string
+  data_pagamento: string
+  referencia_efi?: string | null
+  observacoes?: string
+}
+
+export interface ProviderPaymentsResponse {
+  success: boolean
+  total: number
+  payments: ProviderPaymentRecord[]
+  message?: string
+}
+
 class EfiService {
   async getConfig(token: string): Promise<EfiConfigResponse> {
     return apiFetch('/integrations/efi/config', {
@@ -104,6 +127,16 @@ class EfiService {
       throw new Error(data.message || 'Erro ao enviar certificado')
     }
     return data
+  }
+
+  async getProviderPayments(
+    token: string,
+    limit: number = 100
+  ): Promise<ProviderPaymentsResponse> {
+    return apiFetch(`/admin/payments?limit=${limit}`, {
+      method: 'GET',
+      token
+    })
   }
 }
 
